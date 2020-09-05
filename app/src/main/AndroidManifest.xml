@@ -3,6 +3,7 @@
     package="com.example.trackme">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -15,8 +16,7 @@
             android:name=".LocationTrackerService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="location"
-        ></service>
+            android:foregroundServiceType="location" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
