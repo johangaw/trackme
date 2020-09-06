@@ -34,6 +34,15 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "Starting")
             startLocationTracking()
         }
+
+        binding.stopTracking.setOnClickListener {
+            Log.d(TAG, "Stop tracking")
+            stopLocationTracking()
+        }
+    }
+
+    private fun stopLocationTracking() {
+        stopService(Intent(this, LocationTrackerService::class.java))
     }
 
     private fun startLocationTracking() {

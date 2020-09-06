@@ -8,7 +8,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.location.*
 
 
@@ -21,11 +20,18 @@ class LocationTrackerService : Service() {
     private var tracking = false
     private val TAG: String? = this::class.simpleName
 
+    private val locationCallback: LocationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations) {
+                    Log.d(TAG, location.toString())
+                }
+            }
+        }
 
     override fun onCreate() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
     }
 
     @SuppressLint("MissingPermission")
@@ -39,7 +45,7 @@ class LocationTrackerService : Service() {
 
             fusedLocationClient.requestLocationUpdates(
                 createLocationRequest(),
-                createLocationCallback(),
+                locationCallback,
                 Looper.getMainLooper()
             )
         }
@@ -47,21 +53,18 @@ class LocationTrackerService : Service() {
         return START_STICKY
     }
 
-    private fun createLocationCallback(): LocationCallback {
-        return object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                for (location in locationResult.locations) {
-                    Log.d(TAG, location.toString())
-                }
-            }
+    override fun onDestroy() {
+        super.onDestroy()
+        if(tracking) {
+            tracking = false
+            fusedLocationClient.removeLocationUpdates(locationCallback)
         }
     }
 
     private fun createLocationRequest(): LocationRequest? {
         return LocationRequest.create()?.apply {
-            interval = 10000
-            fastestInterval = 5000
+            interval = 2_000
+            fastestInterval = 1_000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
     }
