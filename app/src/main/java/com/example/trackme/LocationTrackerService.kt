@@ -1,16 +1,14 @@
 package com.example.trackme
 
 import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.location.*
 
 
@@ -74,20 +72,26 @@ class LocationTrackerService : Service() {
             CHANNEL_NAME,
             NotificationManager.IMPORTANCE_NONE
         )
-//        chan.lightColor = Color.BLUE
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         val manager = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
         manager.createNotificationChannel(chan)
 
-        val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setOngoing(true)
             .setContentTitle("LocationTrackerService")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setCategory(Notification.CATEGORY_NAVIGATION)
-            .build()
-        startForeground(1, notification)
+            .setContentIntent(createShowProgressIntent())
+
+        startForeground(1, notificationBuilder.build())
     }
 
     override fun onBind(intent: Intent): IBinder? {
         return null
+    }
+
+    private fun createShowProgressIntent(): PendingIntent {
+        val showProgress = Intent(this, MainActivity::class.java)
+        return PendingIntent.getActivity(this, 0, showProgress, 0);
     }
 }
