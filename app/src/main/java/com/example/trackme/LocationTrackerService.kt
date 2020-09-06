@@ -8,7 +8,11 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.trackme.data.AppDatabase
+import com.example.trackme.data.asTrackEntry
 import com.google.android.gms.location.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class LocationTrackerService : Service() {
@@ -17,28 +21,38 @@ class LocationTrackerService : Service() {
     val CHANNEL_NAME = "LocationTrackerServiceChannel"
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var appDatabase: AppDatabase
     private var tracking = false
     private val TAG: String? = this::class.simpleName
 
     private val locationCallback: LocationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                for (location in locationResult.locations) {
-                    Log.d(TAG, location.toString())
-                }
+        override fun onLocationResult(locationResult: LocationResult?) {
+            locationResult ?: return
+            GlobalScope.launch {
+                appDatabase.trackEntryDao()
+                    .insert(locationResult.locations.map { it.asTrackEntry() })
+            }
+
+            locationResult.locations.forEach {
+                Log.d(TAG, it.toString())
+
             }
         }
+    }
 
     override fun onCreate() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        appDatabase = AppDatabase.getInstance(application)
+
+
     }
 
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        if(!tracking) {
+        if (!tracking) {
             tracking = true
 
             showTrackingNotification()
@@ -55,7 +69,7 @@ class LocationTrackerService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if(tracking) {
+        if (tracking) {
             tracking = false
             fusedLocationClient.removeLocationUpdates(locationCallback)
         }
