@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
-@Entity(tableName = "track_entry", )
+@Entity(tableName = "track_entry")
 data class TrackEntry(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
