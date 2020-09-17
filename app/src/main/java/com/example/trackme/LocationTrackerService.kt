@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class LocationTrackerService : Service() {
 
+    val EXTRA_TRACK_ID = "EXTRA_TRACK_ID"
     val CHANNEL_ID = "LocationTrackerServiceChannel"
     val CHANNEL_NAME = "LocationTrackerServiceChannel"
 
@@ -25,12 +26,14 @@ class LocationTrackerService : Service() {
     private var tracking = false
     private val TAG: String? = this::class.simpleName
 
+    private var trackId: Int = 0
+
     private val locationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult?) {
             locationResult ?: return
             GlobalScope.launch {
                 appDatabase.trackEntryDao()
-                    .insert(locationResult.locations.map { it.asTrackEntry() })
+                    .insert(locationResult.locations.map { it.asTrackEntry(trackId) })
             }
 
             locationResult.locations.forEach {
@@ -51,6 +54,8 @@ class LocationTrackerService : Service() {
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+
+        trackId = intent?.getIntExtra(EXTRA_TRACK_ID, 0) ?: 0
 
         if (!tracking) {
             tracking = true
