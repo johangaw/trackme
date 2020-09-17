@@ -4,11 +4,19 @@ import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.onActive
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -65,17 +73,32 @@ fun TrackingScreen(
 
 @Composable
 fun Clock(startTime: LocalDateTime, modifier: Modifier = Modifier) {
-    val text = remember(LocalDateTime.now()) {
-        val timeSince = Duration.between(startTime, LocalDateTime.now()).seconds
-        val hours = timeSince / 3600
-        val minutes = (timeSince - (hours * 3600)) / 60
-        val seconds = timeSince - hours * 3600 - minutes * 60
-        "${hours.toString().padStart(2, '0')}:${
-            minutes.toString().padStart(2, '0')
-        }:${seconds.toString().padStart(2, '0')}"
+    var text by remember { mutableStateOf("") }
+
+    onActive {
+        val timerJob = timer(500) {
+            val timeSince = Duration.between(startTime, LocalDateTime.now()).seconds
+            val hours = timeSince / 3600
+            val minutes = (timeSince - (hours * 3600)) / 60
+            val seconds = timeSince - hours * 3600 - minutes * 60
+            text = "${hours.toString().padStart(2, '0')}:${
+                minutes.toString().padStart(2, '0')
+            }:${seconds.toString().padStart(2, '0')}"
+        }
+
+        onDispose { timerJob.cancel() }
     }
 
     Text(text = text, modifier = modifier, style = MaterialTheme.typography.h3)
+}
+
+fun timer(delay: Long, cb: () -> Unit): Job {
+    return GlobalScope.launch {
+        while (true) {
+            cb()
+            delay(delay)
+        }
+    }
 }
 
 @Composable
