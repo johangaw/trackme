@@ -17,16 +17,12 @@ import kotlinx.coroutines.launch
 
 class LocationTrackerService : Service() {
 
-    val EXTRA_TRACK_ID = "EXTRA_TRACK_ID"
-    val CHANNEL_ID = "LocationTrackerServiceChannel"
-    val CHANNEL_NAME = "LocationTrackerServiceChannel"
-
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var appDatabase: AppDatabase
     private var tracking = false
     private val TAG: String? = this::class.simpleName
 
-    private var trackId: Int = 0
+    private var trackId: Long = -1
 
     private val locationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult?) {
@@ -38,7 +34,6 @@ class LocationTrackerService : Service() {
 
             locationResult.locations.forEach {
                 Log.d(TAG, it.toString())
-
             }
         }
     }
@@ -47,15 +42,15 @@ class LocationTrackerService : Service() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         appDatabase = AppDatabase.getInstance(application)
-
-
     }
 
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        trackId = intent?.getIntExtra(EXTRA_TRACK_ID, 0) ?: 0
+        trackId = intent?.getLongExtra(EXTRA_TRACK_ID, -1) ?: -1
+        require(trackId >= 0
+        ) { "LocationTrackerService must be started with EXTRA_TRACK_ID intent param" }
 
         if (!tracking) {
             tracking = true
@@ -115,5 +110,11 @@ class LocationTrackerService : Service() {
     private fun createShowProgressIntent(): PendingIntent {
         val showProgress = Intent(this, MainActivity::class.java)
         return PendingIntent.getActivity(this, 0, showProgress, 0);
+    }
+
+    companion object {
+        const val EXTRA_TRACK_ID = "EXTRA_TRACK_ID"
+        const val CHANNEL_ID = "LocationTrackerServiceChannel"
+        const val CHANNEL_NAME = "LocationTrackerServiceChannel"
     }
 }

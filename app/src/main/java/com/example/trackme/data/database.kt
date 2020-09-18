@@ -5,42 +5,43 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Entity(tableName = "track_entry",
+        indices = [Index("trackId", unique = false)],
         foreignKeys = [ForeignKey(entity = Track::class,
                                   parentColumns = ["id"],
                                   childColumns = ["trackId"],
                                   onDelete = ForeignKey.CASCADE)])
 data class TrackEntry(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: Long = 0,
     val longitude: Double,
     val latitude: Double,
     val altitude: Double,
     val speed: Float,
     val bearing: Float,
     val time: Long,
-    val trackId: Int,
+    val trackId: Long,
 )
 
 @Entity(tableName = "track")
 data class Track(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: Long = 0,
     val name: String = "",
 )
 
 @Dao
 interface TrackDao {
     @Insert
-    suspend fun insert(vararg entries: Track)
+    suspend fun insert(vararg entries: Track): List<Long>
 
     @Insert
-    suspend fun insert(entries: List<Track>)
+    suspend fun insert(entries: List<Track>): List<Long>
 
     @Query("SELECT * FROM track WHERE id = :id")
-    fun getAndObserve(id: Int): LiveData<Track>
+    fun getAndObserve(id: Long): LiveData<Track>
 
     @Query("SELECT * FROM track WHERE id = :id")
-    suspend fun get(id: Int): Track
+    suspend fun get(id: Long): Track
 }
 
 @Dao
@@ -58,7 +59,7 @@ interface TrackEntryDao {
     suspend fun removeTrack()
 }
 
-@Database(entities = [TrackEntry::class, Track::class], version = 2)
+@Database(entities = [TrackEntry::class, Track::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun trackEntryDao(): TrackEntryDao
     abstract fun trackDao(): TrackDao
@@ -73,7 +74,9 @@ abstract class AppDatabase : RoomDatabase() {
                         applicationContext,
                         AppDatabase::class.java,
                         "track-me-db"
-                    ).build()
+                    )
+                        .fallbackToDestructiveMigration()
+                        .build()
                 }
             }
             return INSTANCE!!
