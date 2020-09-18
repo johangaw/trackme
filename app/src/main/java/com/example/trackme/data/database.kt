@@ -55,6 +55,9 @@ interface TrackEntryDao {
     @Query("SELECT * FROM track_entry")
     fun getAllAndObserve(): LiveData<List<TrackEntry>>
 
+    @Query("SELECT * FROM track_entry WHERE trackId == :trackId")
+    fun getAllAndObserve(trackId: Long): LiveData<List<TrackEntry>>
+
     @Query("DELETE FROM track_entry")
     suspend fun removeTrack()
 }
