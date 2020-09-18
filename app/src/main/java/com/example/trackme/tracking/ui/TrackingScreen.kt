@@ -17,9 +17,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.lang.Math.round
 import java.time.Duration
 import java.time.LocalDateTime
+import kotlin.math.roundToInt
 
 @Composable
 fun TrackingScreen(
@@ -73,7 +73,7 @@ fun TrackingScreen(
 }
 
 fun formatDistance(distance: Float): String {
-    return "${round((distance / 1000f) * 100f) / 100f} km"
+    return "${((distance / 1000f) * 100f).roundToInt() / 100f} km"
 }
 
 @Composable

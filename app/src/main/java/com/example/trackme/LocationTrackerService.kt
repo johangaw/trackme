@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.os.Looper
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.asTrackEntry
@@ -20,8 +19,6 @@ class LocationTrackerService : Service() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var appDatabase: AppDatabase
     private var tracking = false
-    private val TAG: String? = this::class.simpleName
-
     private var trackId: Long = -1
 
     private val locationCallback: LocationCallback = object : LocationCallback() {
@@ -30,10 +27,6 @@ class LocationTrackerService : Service() {
             GlobalScope.launch {
                 appDatabase.trackEntryDao()
                     .insert(locationResult.locations.map { it.asTrackEntry(trackId) })
-            }
-
-            locationResult.locations.forEach {
-                Log.d(TAG, it.toString())
             }
         }
     }
@@ -84,14 +77,14 @@ class LocationTrackerService : Service() {
     }
 
     private fun showTrackingNotification() {
-        val chan = NotificationChannel(
+        val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
             NotificationManager.IMPORTANCE_NONE
         )
-        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         val manager = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-        manager.createNotificationChannel(chan)
+        manager.createNotificationChannel(channel)
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setOngoing(true)
@@ -109,7 +102,7 @@ class LocationTrackerService : Service() {
 
     private fun createShowProgressIntent(): PendingIntent {
         val showProgress = Intent(this, MainActivity::class.java)
-        return PendingIntent.getActivity(this, 0, showProgress, 0);
+        return PendingIntent.getActivity(this, 0, showProgress, 0)
     }
 
     companion object {
