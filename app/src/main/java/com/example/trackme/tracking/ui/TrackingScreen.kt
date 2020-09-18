@@ -17,6 +17,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.lang.Math.round
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -54,7 +55,7 @@ fun TrackingScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(text = "$totalLength m", style = MaterialTheme.typography.h3)
+                Text(text = formatDistance(totalLength), style = MaterialTheme.typography.h3)
                 Text(text = "$currentSpeed m/s", style = MaterialTheme.typography.h3)
             }
             Row(
@@ -69,6 +70,10 @@ fun TrackingScreen(
             }
         }
     }
+}
+
+fun formatDistance(distance: Float): String {
+    return "${round((distance / 1000f) * 100f) / 100f} km"
 }
 
 @Composable
