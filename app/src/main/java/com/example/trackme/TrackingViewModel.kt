@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.*
 import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.Track
+import com.example.trackme.data.TrackEntry
 import com.example.trackme.data.asLocation
 import java.time.LocalDateTime
 
@@ -11,17 +12,16 @@ class TrackingViewModel(
     private val database: AppDatabase,
 ) : ViewModel() {
     private val activeTrack = MutableLiveData<Track?>(null)
+    private val activeTrackEntries: LiveData<List<TrackEntry>> = Transformations
+        .switchMap(activeTrack) { track ->
+            track?.let {
+                database.trackEntryDao().getAllAndObserve(track.id)
+            } ?: MutableLiveData()
+        }
     private var _trackStartedAt = MutableLiveData<LocalDateTime?>(null)
     val trackStartedAt: LiveData<LocalDateTime?> = _trackStartedAt
     val totalDistance: LiveData<Float> =
-        Transformations.map(
-            Transformations
-                .switchMap(activeTrack) { track ->
-                    track?.let {
-                        database.trackEntryDao().getAllAndObserve(track.id)
-                    } ?: MutableLiveData()
-                }
-        ) {
+        Transformations.map(activeTrackEntries) {
             it?.map { entry -> entry.asLocation() }
                 ?.zipWithNext { l1, l2 -> l1.distanceTo(l2) }
                 ?.sum() ?: 0F
