@@ -10,22 +10,28 @@ import java.time.LocalDateTime
 class TrackingViewModel(
     private val database: AppDatabase,
 ) : ViewModel() {
-    var _trackStartedAt = MutableLiveData<LocalDateTime?>(null)
+    private val activeTrack = MutableLiveData<Track?>(null)
+    private var _trackStartedAt = MutableLiveData<LocalDateTime?>(null)
     val trackStartedAt: LiveData<LocalDateTime?> = _trackStartedAt
-    var track: Track? = null
     val totalDistance: LiveData<Float> =
-        Transformations
-            .map(database.trackEntryDao()
-                     .getAllAndObserve()) {
-                it?.map { entry -> entry.asLocation() }
-                    ?.zipWithNext { l1, l2 -> l1.distanceTo(l2) }
-                    ?.sum() ?: 0F
-            }
+        Transformations.map(
+            Transformations
+                .switchMap(activeTrack) { track ->
+                    track?.let {
+                        database.trackEntryDao().getAllAndObserve(track.id)
+                    } ?: MutableLiveData()
+                }
+        ) {
+            it?.map { entry -> entry.asLocation() }
+                ?.zipWithNext { l1, l2 -> l1.distanceTo(l2) }
+                ?.sum() ?: 0F
+        }
 
     suspend fun newTrack(): Track {
         val trackId = database.trackDao().insert(Track()).first()
-        track = database.trackDao().get(trackId)
-        return track!!
+        val track = database.trackDao().get(trackId)
+        activeTrack.postValue(track)
+        return track
     }
 
     fun startTracking() {
