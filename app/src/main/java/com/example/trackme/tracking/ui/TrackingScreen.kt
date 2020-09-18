@@ -25,7 +25,7 @@ fun TrackingScreen(
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
     startedAt: LocalDateTime?,
-    totalLength: Int,
+    totalLength: Float,
     currentSpeed: Double,
 ) {
 
@@ -114,7 +114,7 @@ fun TrackingScreenPreview() {
             onStartClick = {},
             onStopClick = {},
             startedAt = trackStartedAt,
-            totalLength = 1337,
+            totalLength = 1337F,
             currentSpeed = 3.67
         )
     }
@@ -132,7 +132,7 @@ fun NotTrackingScreenPreview() {
             onStartClick = {},
             onStopClick = {},
             startedAt = null,
-            totalLength = 0,
+            totalLength = 0F,
             currentSpeed = 0.0,
         )
     }

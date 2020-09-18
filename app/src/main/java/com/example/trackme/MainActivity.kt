@@ -4,20 +4,22 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.setContent
-import androidx.compose.ui.viewinterop.viewModel
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.trackme.databinding.ActivityMainBinding
+import androidx.lifecycle.lifecycleScope
 import com.example.trackme.tracking.ui.TrackingScreen
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
     private val REQUEST_PERMISSIONS_REQUEST_CODE = 34
     private val TAG: String? = this::class.simpleName
-
-
+    private val viewModel: TrackingViewModel by viewModels { TrackingViewModelFactory(application) }
 
     private val hasLocationPermission: Boolean
         get() {
@@ -31,40 +33,43 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val viewModel: TrackingViewModel = viewModel()
+            val totalDistance by viewModel.totalDistance.observeAsState()
+            val trackStartedAt by viewModel.trackStartedAt.observeAsState()
 
-            TrackingScreen(onStartClick = viewModel::startTracking,
-                           onStopClick = viewModel::stopTracking,
-                           startedAt = viewModel.trackStartedAt,
-                           totalLength = 0,
-                           currentSpeed = 0.0)
+            TrackingScreen(
+                onStartClick = {
+                    requestLocationTracking()
+                },
+                onStopClick = {
+                    stopLocationTracking()
+                    viewModel.stopTracking()
+                },
+                startedAt = trackStartedAt,
+                totalLength = totalDistance ?: 0F,
+                currentSpeed = 0.0
+            )
         }
-//        binding = ActivityMainBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
-
-//        binding.startTracking.setOnClickListener {
-//            Log.d(TAG, "Starting")
-//            startLocationTracking()
-//        }
-//
-//        binding.stopTracking.setOnClickListener {
-//            Log.d(TAG, "Stop tracking")
-//            stopLocationTracking()
-//        }
-
-
     }
 
     private fun stopLocationTracking() {
         stopService(Intent(this, LocationTrackerService::class.java))
     }
 
-    private fun startLocationTracking() {
+    private fun requestLocationTracking() {
         if (!hasLocationPermission) {
             requestLocationPermission()
         } else {
-            val serviceIntent = Intent(this, LocationTrackerService::class.java)
-            ContextCompat.startForegroundService(this, serviceIntent)
+            startLocationTracking()
+        }
+    }
+
+    private fun startLocationTracking() {
+        lifecycleScope.launch {
+            val track = viewModel.newTrack()
+            val serviceIntent = Intent(this@MainActivity, LocationTrackerService::class.java)
+            serviceIntent.putExtra(LocationTrackerService.EXTRA_TRACK_ID, track.id)
+            ContextCompat.startForegroundService(this@MainActivity, serviceIntent)
+            viewModel.startTracking()
         }
     }
 
@@ -73,7 +78,7 @@ class MainActivity : AppCompatActivity() {
             this,
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
             REQUEST_PERMISSIONS_REQUEST_CODE
-        );
+        )
     }
 
     @Override
