@@ -17,8 +17,6 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
-    private val REQUEST_PERMISSIONS_REQUEST_CODE = 34
-    private val TAG: String? = this::class.simpleName
     private val viewModel: TrackingViewModel by viewModels { TrackingViewModelFactory(application) }
 
     private val hasLocationPermission: Boolean
@@ -93,5 +91,9 @@ class MainActivity : AppCompatActivity() {
                 startLocationTracking()
             }
         }
+    }
+
+    companion object {
+        private const val REQUEST_PERMISSIONS_REQUEST_CODE = 34
     }
 }
