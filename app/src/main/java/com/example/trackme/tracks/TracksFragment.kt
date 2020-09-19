@@ -1,7 +1,6 @@
 package com.example.trackme.tracks
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,11 +9,12 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.trackme.R
 import com.example.trackme.data.Track
-import com.example.trackme.tracking.TrackingFragment
 import com.example.trackme.tracks.ui.TracksScreen
+import kotlinx.coroutines.launch
 
 class TracksFragment : Fragment() {
 
@@ -30,7 +30,12 @@ class TracksFragment : Fragment() {
 
                 TracksScreen(
                     tracks = tracks ?: emptyList(),
-                    onTrackClick = this@TracksFragment::showTrack
+                    onTrackClick = this@TracksFragment::showTrack,
+                    onNewClick = {
+                        lifecycleScope.launch {
+                            viewModel.newTrack()
+                        }
+                    }
                 )
             }
         }

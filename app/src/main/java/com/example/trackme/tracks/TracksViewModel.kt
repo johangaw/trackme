@@ -7,8 +7,13 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.Track
 
-class TracksViewModel(database: AppDatabase) : ViewModel() {
+class TracksViewModel(private val database: AppDatabase) : ViewModel() {
     val tracks: LiveData<List<Track>> = database.trackDao().getAllAndObserve()
+
+    suspend fun newTrack(): Track {
+        val trackId = database.trackDao().insert(Track()).first()
+        return database.trackDao().get(trackId)
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

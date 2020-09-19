@@ -27,6 +27,12 @@ data class Track(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String = "",
+    val active: Boolean = false,
+)
+
+data class TrackActivity(
+    val id: Long,
+    val active: Boolean,
 )
 
 @Dao
@@ -36,6 +42,9 @@ interface TrackDao {
 
     @Insert
     suspend fun insert(entries: List<Track>): List<Long>
+
+    @Update(entity = Track::class)
+    suspend fun updateActivity(entry: TrackActivity)
 
     @Query("SELECT * FROM track")
     fun getAllAndObserve(): LiveData<List<Track>>
@@ -55,17 +64,14 @@ interface TrackEntryDao {
     @Insert
     suspend fun insert(entries: List<TrackEntry>)
 
-    @Query("SELECT * FROM track_entry")
-    fun getAllAndObserve(): LiveData<List<TrackEntry>>
-
-    @Query("SELECT * FROM track_entry WHERE trackId == :trackId")
+    @Query("SELECT * FROM track_entry WHERE trackId == :trackId ORDER BY time ASC")
     fun getAllAndObserve(trackId: Long): LiveData<List<TrackEntry>>
 
     @Query("DELETE FROM track_entry")
     suspend fun removeTrack()
 }
 
-@Database(entities = [TrackEntry::class, Track::class], version = 3)
+@Database(entities = [TrackEntry::class, Track::class], version = 4)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun trackEntryDao(): TrackEntryDao
     abstract fun trackDao(): TrackDao

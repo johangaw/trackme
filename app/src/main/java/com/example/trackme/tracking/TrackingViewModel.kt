@@ -2,10 +2,7 @@ package com.example.trackme.tracking
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.example.trackme.data.AppDatabase
-import com.example.trackme.data.Track
-import com.example.trackme.data.TrackEntry
-import com.example.trackme.data.asLocation
+import com.example.trackme.data.*
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -13,18 +10,15 @@ import java.time.ZoneId
 
 class TrackingViewModel(
     private val database: AppDatabase,
+    private val trackId: Long,
 ) : ViewModel() {
-    private val activeTrack = MutableLiveData<Track?>(null)
-    private val activeTrackEntries: LiveData<List<TrackEntry>> = Transformations
-        .switchMap(activeTrack) { track ->
-            track?.let {
-                database.trackEntryDao().getAllAndObserve(track.id)
-            } ?: MutableLiveData()
-        }
+
+    private val activeTrackEntries: LiveData<List<TrackEntry>> =
+        database.trackEntryDao().getAllAndObserve(trackId)
     val trackStartedAt: LiveData<LocalDateTime?> = Transformations.map(activeTrackEntries) {
         it.firstOrNull()?.time?.let { timeStamp ->
             LocalDateTime.ofInstant(Instant.ofEpochMilli(timeStamp), ZoneId.systemDefault())
-        }
+        } ?: LocalDateTime.now()
     }
     val totalDistance: LiveData<Float> =
         Transformations.map(activeTrackEntries) {
@@ -32,35 +26,27 @@ class TrackingViewModel(
                 ?.zipWithNext { l1, l2 -> l1.distanceTo(l2) }
                 ?.sum() ?: 0F
         }
+    val activeTrack: LiveData<Track> = database.trackDao().getAndObserve(trackId)
 
-    suspend fun newTrack(): Track {
-        val trackId = database.trackDao().insert(Track()).first()
-        val track = database.trackDao().get(trackId)
-        activeTrack.postValue(track)
-        return track
-    }
-
-    fun selectTrack(trackId: Long) {
+    fun startTracking() {
         viewModelScope.launch {
-            val track = database.trackDao().get(trackId)
-            activeTrack.postValue(track)
+            database.trackDao().updateActivity(TrackActivity(trackId, true))
         }
     }
 
-    fun startTracking() {
-//        _trackStartedAt.postValue(LocalDateTime.now())
-    }
-
     fun stopTracking() {
-//        _trackStartedAt.postValue(null)
+        viewModelScope.launch {
+            database.trackDao().updateActivity(TrackActivity(trackId, false))
+        }
     }
 }
 
 @Suppress("UNCHECKED_CAST")
-class TrackingViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+class TrackingViewModelFactory(private val application: Application, private val trackId: Long) :
+    ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         val database = AppDatabase.getInstance(application)
-        return TrackingViewModel(database) as T
+        return TrackingViewModel(database, trackId) as T
     }
 }
 
