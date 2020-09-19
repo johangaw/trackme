@@ -10,7 +10,10 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import com.example.trackme.R
 import com.example.trackme.data.Track
+import com.example.trackme.tracking.TrackingFragment
 import com.example.trackme.tracks.ui.TracksScreen
 
 class TracksFragment : Fragment() {
@@ -34,6 +37,9 @@ class TracksFragment : Fragment() {
     }
 
     private fun showTrack(track: Track) {
-        Log.d(this::class.simpleName, "showTrack()")
+        val params = Bundle().apply {
+            putLong(TrackingFragment.TRACK_ID_EXTRA, track.id)
+        }
+        findNavController().navigate(R.id.tracking_route, params)
     }
 }
