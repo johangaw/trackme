@@ -16,9 +16,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.example.trackme.LocationTrackerService
-import com.example.trackme.TrackingViewModel
-import com.example.trackme.TrackingViewModelFactory
+import com.example.trackme.R
 import com.example.trackme.tracking.ui.TrackingScreen
 import kotlinx.coroutines.launch
 
@@ -39,15 +37,15 @@ class TrackingFragment : Fragment() {
             ) == PackageManager.PERMISSION_GRANTED
         }
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
+        val paramName = resources.getString(R.string.tracking_route_track_id_param)
+        val trackingId = arguments?.getLong(paramName)
+        require(trackingId != null) { "TrackId param is required in TrackingFragment"}
+        viewModel.selectTrack(trackingId)
+
         return ComposeView(requireContext()).apply {
             setContent {
                 val totalDistance by viewModel.totalDistance.observeAsState()
@@ -93,9 +91,5 @@ class TrackingFragment : Fragment() {
 
     private fun requestLocationPermission() {
         permissionRequest.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-    }
-
-    companion object {
-        const val TRACK_ID_EXTRA = "TRACK_ID_EXTRA"
     }
 }

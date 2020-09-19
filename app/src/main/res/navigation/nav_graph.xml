@@ -16,6 +16,11 @@
     <fragment
         android:id="@+id/tracking_route"
         android:name="com.example.trackme.tracking.TrackingFragment"
-        android:label="Tracking" />
+        android:label="Tracking">
+        <argument
+            android:name="@string/tracking_route_track_id_param"
+            android:defaultValue="-1L"
+            app:argType="long" />
+    </fragment>
 
 </navigation>
