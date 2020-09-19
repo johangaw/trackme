@@ -6,24 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/start_tracking"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start"
-        tools:layout_editor_absoluteX="159dp"
-        tools:layout_editor_absoluteY="345dp" />
-
-    <Space
-        android:layout_width="24dp"
-        android:layout_height="0dp"
-        />
-
-    <Button
-        android:id="@+id/stop_tracking"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="End"
-        tools:layout_editor_absoluteX="157dp"
-        tools:layout_editor_absoluteY="432dp" />
+    <fragment
+        android:id="@+id/tracks_fragment"
+        android:name="com.example.trackme.tracking.TrackingFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </fragment>
 </androidx.appcompat.widget.LinearLayoutCompat>

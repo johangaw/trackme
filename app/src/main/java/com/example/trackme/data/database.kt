@@ -37,6 +37,9 @@ interface TrackDao {
     @Insert
     suspend fun insert(entries: List<Track>): List<Long>
 
+    @Query("SELECT * FROM track")
+    fun getAllAndObserve(): LiveData<List<Track>>
+
     @Query("SELECT * FROM track WHERE id = :id")
     fun getAndObserve(id: Long): LiveData<Track>
 
