@@ -7,7 +7,9 @@ import com.example.trackme.data.Track
 import com.example.trackme.data.TrackEntry
 import com.example.trackme.data.asLocation
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 class TrackingViewModel(
     private val database: AppDatabase,
@@ -19,8 +21,11 @@ class TrackingViewModel(
                 database.trackEntryDao().getAllAndObserve(track.id)
             } ?: MutableLiveData()
         }
-    private var _trackStartedAt = MutableLiveData<LocalDateTime?>(null)
-    val trackStartedAt: LiveData<LocalDateTime?> = _trackStartedAt
+    val trackStartedAt: LiveData<LocalDateTime?> = Transformations.map(activeTrackEntries) {
+        it.firstOrNull()?.time?.let { timeStamp ->
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(timeStamp), ZoneId.systemDefault())
+        }
+    }
     val totalDistance: LiveData<Float> =
         Transformations.map(activeTrackEntries) {
             it?.map { entry -> entry.asLocation() }
@@ -43,11 +48,11 @@ class TrackingViewModel(
     }
 
     fun startTracking() {
-        _trackStartedAt.postValue(LocalDateTime.now())
+//        _trackStartedAt.postValue(LocalDateTime.now())
     }
 
     fun stopTracking() {
-        _trackStartedAt.postValue(null)
+//        _trackStartedAt.postValue(null)
     }
 }
 
