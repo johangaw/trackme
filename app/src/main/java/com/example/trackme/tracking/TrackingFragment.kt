@@ -94,4 +94,8 @@ class TrackingFragment : Fragment() {
     private fun requestLocationPermission() {
         permissionRequest.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
+
+    companion object {
+        const val TRACK_ID_EXTRA = "TRACK_ID_EXTRA"
+    }
 }
