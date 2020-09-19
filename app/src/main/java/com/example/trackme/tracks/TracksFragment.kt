@@ -37,8 +37,9 @@ class TracksFragment : Fragment() {
     }
 
     private fun showTrack(track: Track) {
+        val paramName = resources.getString(R.string.tracking_route_track_id_param)
         val params = Bundle().apply {
-            putLong(TrackingFragment.TRACK_ID_EXTRA, track.id)
+            putLong(paramName, track.id)
         }
         findNavController().navigate(R.id.tracking_route, params)
     }

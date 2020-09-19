@@ -1,4 +1,4 @@
-package com.example.trackme
+package com.example.trackme.tracking
 
 import android.annotation.SuppressLint
 import android.app.*
@@ -7,6 +7,8 @@ import android.content.Intent
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import com.example.trackme.MainActivity
+import com.example.trackme.R
 import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.asTrackEntry
 import com.google.android.gms.location.*

@@ -1,4 +1,4 @@
-package com.example.trackme
+package com.example.trackme.tracking
 
 import android.app.Application
 import androidx.lifecycle.*
@@ -6,6 +6,7 @@ import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.Track
 import com.example.trackme.data.TrackEntry
 import com.example.trackme.data.asLocation
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 class TrackingViewModel(
@@ -32,6 +33,13 @@ class TrackingViewModel(
         val track = database.trackDao().get(trackId)
         activeTrack.postValue(track)
         return track
+    }
+
+    fun selectTrack(trackId: Long) {
+        viewModelScope.launch {
+            val track = database.trackDao().get(trackId)
+            activeTrack.postValue(track)
+        }
     }
 
     fun startTracking() {
