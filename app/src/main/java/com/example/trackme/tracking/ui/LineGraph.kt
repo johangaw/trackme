@@ -31,6 +31,12 @@ class Interpolation(srcFrom: Float, srcTo: Float, targetFrom: Float, targetTo: F
     }
 }
 
+data class DrawingContext(
+    val xInter: Interpolation,
+    val yInter: Interpolation,
+    val drawScope: DrawScope,
+)
+
 @Composable
 fun LineGraph(
     modifier: Modifier,
@@ -44,11 +50,29 @@ fun LineGraph(
     Canvas(modifier = modifier.background(Color.White)) {
         val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, size.width)
         val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, size.height, 0f)
+        val drawingContext = DrawingContext(xInter, yInter, this)
 
-        drawOriginLines(this, xInter, yInter)
+        drawOriginLines(drawingContext)
 
         val color = Color.Red
+        drawLine(drawingContext, data, color)
+        drawPoints(drawingContext, data, color)
+    }
+}
 
+fun drawOriginLines(drawingContext: DrawingContext) {
+    val (xInter, yInter) = drawingContext
+    drawingContext.drawScope.apply {
+        val xOrigin = xInter.interpolate(0f)
+        val yOrigin = yInter.interpolate(0f)
+        drawLine(Color.Black, Offset(0f, yOrigin), Offset(size.width, yOrigin))
+        drawLine(Color.Black, Offset(xOrigin, 0f), Offset(xOrigin, size.height))
+    }
+}
+
+fun drawLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
+    val (xInter, yInter) = drawingContext
+    drawingContext.drawScope.apply {
         val path = Path()
         data.forEachIndexed { index, point ->
             val x = xInter.interpolate(point.x)
@@ -56,21 +80,17 @@ fun LineGraph(
             if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
         }
         drawPath(path, color, style = Stroke())
-
-        data.forEach { p ->
-            val center = Offset(xInter.interpolate(p.x), yInter.interpolate(p.y))
-            drawCircle(color, 15f, center)
-        }
     }
 }
 
-fun drawOriginLines(drawScope: DrawScope, xInter: Interpolation, yInter: Interpolation) {
-    drawScope.apply {
-        val xOrigin = xInter.interpolate(0f)
-        val yOrigin = yInter.interpolate(0f)
-
-        drawLine(Color.Black, Offset(0f, yOrigin), Offset(size.width, yOrigin))
-        drawLine(Color.Black, Offset(xOrigin, 0f), Offset(xOrigin, size.height))
+fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) {
+    val (xInter, yInter) = drawingContext
+    drawingContext.drawScope.apply {
+        data.forEach { p ->
+            val center = Offset(xInter.interpolate(p.x),
+                                yInter.interpolate(p.y))
+            drawCircle(color, 15f, center)
+        }
     }
 }
 
