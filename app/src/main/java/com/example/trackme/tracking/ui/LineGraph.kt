@@ -3,7 +3,8 @@ package com.example.trackme.tracking.ui
 import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.preferredHeight
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,10 +13,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
 
-data class Point(val x: Float, val y: Float)
+data class Point(val x: Float, val y: Float) {
+    operator fun plus(scalar: Float): Point {
+        return Point(x + scalar, y + scalar)
+    }
+
+    operator fun minus(scalar: Float): Point {
+        return Point(x - scalar, y - scalar)
+    }
+}
 
 class Interpolation(srcFrom: Float, srcTo: Float, targetFrom: Float, targetTo: Float) {
     private var scaleFactor: Float = 1f
@@ -55,7 +65,8 @@ fun LineGraph(
         drawOriginLines(drawingContext)
 
         val color = Color.Red
-        drawLine(drawingContext, data, color)
+        drawLine(drawingContext, data, Color.LightGray)
+        drawBezierLine(drawingContext, data, color)
         drawPoints(drawingContext, data, color)
     }
 }
@@ -83,6 +94,45 @@ fun drawLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
     }
 }
 
+fun drawBezierLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
+    val (xInter, yInter) = drawingContext
+    drawingContext.drawScope.apply {
+        val path = Path()
+        val first = data.first()
+        path.moveTo(xInter.interpolate(first.x), yInter.interpolate(first.y))
+
+        val mMap: MutableMap<Int, Float> = mutableMapOf()
+        (1..data.count() - 2).forEach { i ->
+            val (p0, p1, p2) = data.subList(i-1, i+2)
+
+            val m = ((p2.y - p1.y) / (p2.x - p1.x) + (p1.y - p0.y) / (p1.x - p0.x)) * 0.5f
+            mMap[i] = m
+        }
+        mMap[0] = 0f
+        mMap[data.count() - 1] = 0f
+
+        (1 until data.count()).forEach { i ->
+            val (pMinus, pi) = data.subList(i-1, i+1)
+            val pp1 = pMinus + mMap.getOrDefault(i-1, 0f) / 3
+            val pp2 = pi - mMap.getOrDefault(i, 0f) / 3
+
+            path.cubicTo(
+                xInter.interpolate(pp1.x),
+                yInter.interpolate(pp1.y),
+                xInter.interpolate(pp2.x),
+                yInter.interpolate(pp2.y),
+                xInter.interpolate(pi.x),
+                yInter.interpolate(pi.y),
+            )
+        }
+
+        val last = data.last()
+        path.lineTo(xInter.interpolate(last.x), yInter.interpolate(last.y))
+
+        drawPath(path, color, style = Stroke())
+    }
+}
+
 fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) {
     val (xInter, yInter) = drawingContext
     drawingContext.drawScope.apply {
@@ -104,12 +154,16 @@ fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) 
 fun LineGraphPreview() {
     MaterialTheme {
         LineGraph(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth().preferredHeight(300.dp),
             data = listOf(
                 Point(0f, 0f),
                 Point(1f, 10f),
                 Point(2f, 6.4f),
-                Point(3f, 16.44f)
+                Point(3f, 16.44f),
+                Point(4f, 10.44f),
+                Point(5f, 11.7f),
+                Point(6f, 2.3f),
+                Point(7f, 5.7f),
             )
         )
     }
