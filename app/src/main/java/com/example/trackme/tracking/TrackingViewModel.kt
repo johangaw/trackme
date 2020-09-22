@@ -13,7 +13,7 @@ class TrackingViewModel(
     private val trackId: Long,
 ) : ViewModel() {
 
-    private val activeTrackEntries: LiveData<List<TrackEntry>> =
+    val activeTrackEntries: LiveData<List<TrackEntry>> =
         database.trackEntryDao().getAllAndObserve(trackId)
     val trackStartedAt: LiveData<LocalDateTime?> = Transformations.map(activeTrackEntries) {
         it.firstOrNull()?.time?.let { timeStamp ->

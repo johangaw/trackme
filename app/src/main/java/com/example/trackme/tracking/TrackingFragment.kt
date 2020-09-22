@@ -55,6 +55,7 @@ class TrackingFragment : Fragment() {
                 val totalDistance by viewModel.totalDistance.observeAsState()
                 val trackStartedAt by viewModel.trackStartedAt.observeAsState()
                 val activeTrack by viewModel.activeTrack.observeAsState()
+                val trackEntries by viewModel.activeTrackEntries.observeAsState()
 
                 val startedAt = activeTrack?.let { track ->
                     if (track.active) trackStartedAt ?: LocalDateTime.now()
@@ -71,7 +72,8 @@ class TrackingFragment : Fragment() {
                     },
                     startedAt = startedAt,
                     totalLength = totalDistance ?: 0F,
-                    currentSpeed = 0.0
+                    currentSpeed = 0.0,
+                    trackEntries = trackEntries ?: emptyList(),
                 )
             }
         }
