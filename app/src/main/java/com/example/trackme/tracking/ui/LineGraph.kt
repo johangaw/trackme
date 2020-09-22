@@ -1,6 +1,7 @@
 package com.example.trackme.tracking.ui
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -113,8 +114,9 @@ fun drawBezierLine(drawingContext: DrawingContext, data: List<Point>, color: Col
 
         (1 until data.count()).forEach { i ->
             val (pMinus, pi) = data.subList(i-1, i+1)
-            val pp1 = pMinus + mMap.getOrDefault(i-1, 0f) / 3
-            val pp2 = pi - mMap.getOrDefault(i, 0f) / 3
+            val divider  = 5f
+            val pp1 = Point(pMinus.x + 1/divider,  pMinus.y + mMap.getOrDefault(i-1, 0f) / divider)
+            val pp2 = Point(pi.x - 1/divider, pi.y - mMap.getOrDefault(i, 0f) / divider)
 
             path.cubicTo(
                 xInter.interpolate(pp1.x),
@@ -139,7 +141,7 @@ fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) 
         data.forEach { p ->
             val center = Offset(xInter.interpolate(p.x),
                                 yInter.interpolate(p.y))
-            drawCircle(color, 15f, center)
+            drawCircle(color, 10f, center)
         }
     }
 }
