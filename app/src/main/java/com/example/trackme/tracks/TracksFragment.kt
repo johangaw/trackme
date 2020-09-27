@@ -12,7 +12,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.trackme.R
-import com.example.trackme.data.Track
 import com.example.trackme.tracks.ui.TracksScreen
 import kotlinx.coroutines.launch
 
@@ -41,7 +40,7 @@ class TracksFragment : Fragment() {
         }
     }
 
-    private fun showTrack(track: Track) {
+    private fun showTrack(track: TrackData) {
         val paramName = resources.getString(R.string.tracking_route_track_id_param)
         val params = Bundle().apply {
             putLong(paramName, track.id)
