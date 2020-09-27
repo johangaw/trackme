@@ -1,16 +1,22 @@
 package com.example.trackme.tracks.ui
 
+import androidx.compose.foundation.Icon
 import androidx.compose.foundation.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ColumnScope.gravity
+import androidx.compose.foundation.lazy.LazyColumnFor
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
-import com.example.trackme.tracking.ui.RoundTextButton
 import com.example.trackme.tracks.TrackData
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -21,20 +27,20 @@ fun TracksScreen(
     onTrackClick: (TrackData) -> Unit,
     onNewClick: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        for (track in tracks) {
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNewClick,
+                modifier = Modifier.gravity(Alignment.End)) {
+                Icon(Icons.Filled.Add)
+            }
+        }
+    ) {
+        LazyColumnFor(items = tracks, contentPadding = it) {track ->
             Row(modifier = Modifier.fillMaxWidth().clickable(onClick = { onTrackClick(track) }).padding(4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(track.name, style = MaterialTheme.typography.h5)
                 Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "", style = MaterialTheme.typography.h6, modifier = Modifier.gravity(Alignment.CenterVertically))
             }
-        }
-
-        if (tracks.count() == 0) {
-            RoundTextButton(
-                modifier = Modifier.gravity(Alignment.CenterHorizontally),
-                onClick = onNewClick,
-                text = "New",
-            )
         }
     }
 }
