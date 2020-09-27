@@ -36,12 +36,25 @@ fun TracksScreen(
             }
         }
     ) {
-        LazyColumnFor(items = tracks, contentPadding = it) {track ->
-            Row(modifier = Modifier.fillMaxWidth().clickable(onClick = { onTrackClick(track) }).padding(4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(track.name, style = MaterialTheme.typography.h5)
-                Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "", style = MaterialTheme.typography.h6, modifier = Modifier.gravity(Alignment.CenterVertically))
-            }
+        LazyColumnFor(items = tracks, contentPadding = it) { track ->
+            TrackRow(track = track, onClick = onTrackClick)
         }
+    }
+}
+
+@Composable
+fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = { onClick(track) })
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(track.name, style = MaterialTheme.typography.h5)
+        Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "",
+             style = MaterialTheme.typography.h6,
+             modifier = Modifier.gravity(Alignment.CenterVertically))
     }
 }
 

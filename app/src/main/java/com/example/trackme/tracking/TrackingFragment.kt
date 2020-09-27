@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,7 +67,6 @@ class TrackingFragment : Fragment() {
                     },
                     onStopClick = {
                         stopLocationTracking()
-                        viewModel.stopTracking()
                     },
                     startedAt = startedAt,
                     totalLength = totalDistance ?: 0F,
@@ -96,7 +94,6 @@ class TrackingFragment : Fragment() {
             val serviceIntent = Intent(requireContext(), LocationTrackerService::class.java)
             serviceIntent.putExtra(LocationTrackerService.EXTRA_TRACK_ID, trackingId)
             ContextCompat.startForegroundService(requireContext(), serviceIntent)
-            viewModel.startTracking()
         }
     }
 

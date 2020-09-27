@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.example.trackme.MainActivity
 import com.example.trackme.R
 import com.example.trackme.data.AppDatabase
+import com.example.trackme.data.TrackActivity
 import com.example.trackme.data.asTrackEntry
 import com.google.android.gms.location.*
 import kotlinx.coroutines.GlobalScope
@@ -43,9 +44,14 @@ class LocationTrackerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        trackId = intent?.getLongExtra(EXTRA_TRACK_ID, -1) ?: -1
-        require(trackId >= 0
+        val newTrackingId = intent?.getLongExtra(EXTRA_TRACK_ID, -1) ?: -1
+        if(trackId > 0) {
+            toggleTrackActivity(trackId, false)
+        }
+        require(newTrackingId >= 0
         ) { "LocationTrackerService must be started with EXTRA_TRACK_ID intent param" }
+        trackId = newTrackingId
+        toggleTrackActivity(trackId, true)
 
         if (!tracking) {
             tracking = true
@@ -67,6 +73,7 @@ class LocationTrackerService : Service() {
         if (tracking) {
             tracking = false
             fusedLocationClient.removeLocationUpdates(locationCallback)
+            toggleTrackActivity(trackId, false)
         }
     }
 
@@ -105,6 +112,12 @@ class LocationTrackerService : Service() {
     private fun createShowProgressIntent(): PendingIntent {
         val showProgress = Intent(this, MainActivity::class.java)
         return PendingIntent.getActivity(this, 0, showProgress, 0)
+    }
+
+    private fun toggleTrackActivity(trackId: Long, newValue: Boolean) {
+        GlobalScope.launch {
+            appDatabase.trackDao().updateActivity(TrackActivity(trackId, newValue))
+        }
     }
 
     companion object {
