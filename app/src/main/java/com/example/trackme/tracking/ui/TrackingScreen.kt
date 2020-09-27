@@ -22,8 +22,9 @@ fun TrackingScreen(
     currentSpeed: Double,
     trackEntries: List<TrackEntry>,
 ) {
+    val normalizer = trackEntries.firstOrNull()?.let{ it.time } ?: 0
     val speedPoints =
-        remember(trackEntries) { trackEntries.map { Point(it.time.toFloat(), it.speed) } }
+        remember(trackEntries) { trackEntries.map { Point((it.time - normalizer).toFloat(), it.speed) } }
     val started = startedAt != null
 
     Column(Modifier.fillMaxSize()) {
