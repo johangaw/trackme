@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 
 @Composable
 fun Clock(startTime: LocalDateTime, modifier: Modifier = Modifier) {
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf("00:00:00") }
 
     onActive {
         val timerJob = timer(500) {
