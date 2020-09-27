@@ -27,67 +27,44 @@ fun TrackingScreen(
     currentSpeed: Double,
     trackEntries: List<TrackEntry>,
 ) {
-
     val speedPoints =
         remember(trackEntries) { trackEntries.map { Point(it.time.toFloat(), it.speed) } }
+    val started = startedAt != null
 
-    if (startedAt == null) {
-        Column(
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Clock(startedAt)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(text = formatDistance(totalLength), style = MaterialTheme.typography.h3)
+            Text(text = "$currentSpeed m/s", style = MaterialTheme.typography.h3)
+        }
+        LineGraph(
+            modifier = Modifier.fillMaxWidth().preferredHeight(200.dp),
+            data = speedPoints,
+        )
+        Row(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalGravity = Alignment.CenterHorizontally,
+            horizontalArrangement = Arrangement.Center,
+            verticalGravity = Alignment.CenterVertically,
         ) {
             RoundTextButton(
-                onClick = onStartClick,
-                text = "Start",
+                onClick = if(started) onStopClick else onStartClick,
+                text = if(started) "Stop" else "Start",
             )
         }
 
-    } else {
-        Column(Modifier.fillMaxSize()) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Clock(startedAt)
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Text(text = formatDistance(totalLength), style = MaterialTheme.typography.h3)
-                Text(text = "$currentSpeed m/s", style = MaterialTheme.typography.h3)
-            }
-            LineGraph(
-                modifier = Modifier.fillMaxWidth().preferredHeight(200.dp),
-                data = speedPoints,
-            )
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.Center,
-                verticalGravity = Alignment.CenterVertically,
-            ) {
-                RoundTextButton(
-                    onClick = onStopClick,
-                    text = "Stop",
-                )
-            }
-        }
     }
 }
 
 fun formatDistance(distance: Float): String {
     return "${((distance / 1000f) * 100f).roundToInt() / 100f} km"
-}
-
-fun timer(delay: Long, cb: () -> Unit): Job {
-    return GlobalScope.launch {
-        while (true) {
-            cb()
-            delay(delay)
-        }
-    }
 }
 
 @Composable

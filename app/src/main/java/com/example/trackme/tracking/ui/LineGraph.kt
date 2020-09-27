@@ -53,10 +53,14 @@ fun LineGraph(
     modifier: Modifier,
     data: List<Point>,
 ) {
-    val xMin = data.minOf { it.x }
-    val xMax = data.maxOf { it.x }
-    val yMin = data.minOf { it.y }
-    val yMax = data.maxOf { it.y }
+    if(data.isEmpty()) {
+        return
+    }
+
+    val xMin = data.minOfOrNull { it.x } ?: 0f
+    val xMax = data.maxOfOrNull { it.x } ?: 0f
+    val yMin = data.minOfOrNull { it.y } ?: 0f
+    val yMax = data.maxOfOrNull { it.y } ?: 0f
 
     Canvas(modifier = modifier.background(Color.White)) {
         val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, size.width)
