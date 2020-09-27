@@ -8,10 +8,17 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.Track
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 class TracksViewModel(private val database: AppDatabase) : ViewModel() {
-    val tracks: LiveData<List<TrackData>> = Transformations.
-        map(database.trackDao().getAllAndObserve()) { tracks -> tracks.map { TrackData(it.id, it.name, LocalDateTime.now()) }}
+    val tracks: LiveData<List<TrackData>> =
+        Transformations.map(database.trackDao().getAllWithTracksAndObserve()) { trackWithEntries ->
+            trackWithEntries.map { it ->
+                val startTime = it.entries.firstOrNull()
+                    ?.let { LocalDateTime.ofEpochSecond(it.time / 1000, 0, ZoneOffset.UTC) }
+                TrackData(it.track.id, it.track.name, startTime)
+            }
+        }
 
     suspend fun newTrack(): Track {
         val trackId = database.trackDao().insert(Track()).first()
@@ -22,11 +29,11 @@ class TracksViewModel(private val database: AppDatabase) : ViewModel() {
 data class TrackData(
     val id: Long,
     val name: String,
-    val startTime: LocalDateTime?
+    val startTime: LocalDateTime?,
 )
 
 @Suppress("UNCHECKED_CAST")
-class TracksViewModelFactory(private val application: Application): ViewModelProvider.Factory {
+class TracksViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         return TracksViewModel(AppDatabase.getInstance(application)) as T
     }

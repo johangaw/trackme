@@ -30,6 +30,14 @@ data class Track(
     val active: Boolean = false,
 )
 
+data class TrackWithEntries(
+    @Embedded
+    val track: Track,
+    @Relation(parentColumn = "id", entityColumn = "trackId")
+    val entries: List<TrackEntry>
+
+)
+
 data class TrackActivity(
     val id: Long,
     val active: Boolean,
@@ -48,6 +56,9 @@ interface TrackDao {
 
     @Query("SELECT * FROM track")
     fun getAllAndObserve(): LiveData<List<Track>>
+
+    @Query("SELECT * FROM track")
+    fun getAllWithTracksAndObserve(): LiveData<List<TrackWithEntries>>
 
     @Query("SELECT * FROM track WHERE id = :id")
     fun getAndObserve(id: Long): LiveData<Track>
