@@ -11,16 +11,11 @@ import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
 import com.example.trackme.data.TrackEntry
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 @Composable
 fun TrackingScreen(
-    onStartClick: () -> Unit,
     onStopClick: () -> Unit,
     startedAt: LocalDateTime?,
     totalLength: Float,
@@ -49,17 +44,18 @@ fun TrackingScreen(
             modifier = Modifier.fillMaxWidth().preferredHeight(200.dp),
             data = speedPoints,
         )
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalGravity = Alignment.CenterVertically,
-        ) {
-            RoundTextButton(
-                onClick = if(started) onStopClick else onStartClick,
-                text = if(started) "Stop" else "Start",
-            )
+        if (started) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.Center,
+                verticalGravity = Alignment.CenterVertically,
+            ) {
+                RoundTextButton(
+                    onClick = onStopClick,
+                    text = "Stop",
+                )
+            }
         }
-
     }
 }
 
@@ -77,7 +73,6 @@ fun TrackingScreenPreview() {
     val trackStartedAt = LocalDateTime.now().minusHours(1).minusMinutes(2).minusSeconds(36)
     MaterialTheme {
         TrackingScreen(
-            onStartClick = {},
             onStopClick = {},
             startedAt = trackStartedAt,
             totalLength = 1337F,
@@ -96,7 +91,6 @@ fun TrackingScreenPreview() {
 fun NotTrackingScreenPreview() {
     MaterialTheme {
         TrackingScreen(
-            onStartClick = {},
             onStopClick = {},
             startedAt = null,
             totalLength = 0F,
