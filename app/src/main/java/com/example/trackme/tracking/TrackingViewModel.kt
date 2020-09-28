@@ -14,8 +14,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 class TrackingViewModel(
-    private val database: AppDatabase,
-    private val trackId: Long,
+    database: AppDatabase,
+    trackId: Long,
 ) : ViewModel() {
 
     val activeTrackEntries: LiveData<List<TrackEntry>> =
