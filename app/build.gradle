@@ -49,7 +49,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
 }
 
 def room_version = "2.2.5"
-def compose_version = "1.0.0-alpha02"
+def compose_version = "1.0.0-alpha03"
 def nav_version = "2.3.0"
 
 dependencies {

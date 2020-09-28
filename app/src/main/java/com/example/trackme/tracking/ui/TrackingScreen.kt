@@ -49,7 +49,7 @@ fun TrackingScreen(
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.Center,
-                verticalGravity = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 RoundTextButton(
                     onClick = onStopClick,
