@@ -30,8 +30,8 @@ fun TracksScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onNewClick,
-                modifier = Modifier.gravity(Alignment.End)) {
+                onClick = onNewClick
+            ) {
                 Icon(Icons.Filled.Add)
             }
         }
@@ -54,7 +54,7 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
         Text(track.name, style = MaterialTheme.typography.h5)
         Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "",
              style = MaterialTheme.typography.h6,
-             modifier = Modifier.gravity(Alignment.CenterVertically))
+             modifier = Modifier.align(Alignment.CenterVertically))
     }
 }
 
