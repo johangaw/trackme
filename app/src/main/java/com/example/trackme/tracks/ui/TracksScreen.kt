@@ -66,7 +66,7 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
 
 
 @Composable
-@Preview(device = Devices.PIXEL_3, showBackground = true)
+@Preview(device = Devices.PIXEL_3, showBackground = true, showDecoration = true)
 fun TracksScreenPreview() {
     val tracks: List<TrackData> = listOf(
         TrackData(1, "Track 1", LocalDateTime.now(), 13f, 3.5f),
