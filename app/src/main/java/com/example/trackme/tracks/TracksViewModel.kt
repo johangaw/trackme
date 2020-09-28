@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.Track
+import com.example.trackme.data.totalDistance
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -16,7 +17,17 @@ class TracksViewModel(private val database: AppDatabase) : ViewModel() {
             trackWithEntries.map { it ->
                 val startTime = it.entries.firstOrNull()
                     ?.let { LocalDateTime.ofEpochSecond(it.time / 1000, 0, ZoneOffset.UTC) }
-                TrackData(it.track.id, it.track.name, startTime)
+                val totalDistance = totalDistance(it.entries)
+                val averageSpeed = it.entries.let { entries ->
+                    totalDistance / (entries.last().time - entries.first().time)
+                }
+                TrackData(
+                    it.track.id,
+                    it.track.name,
+                    startTime,
+                    totalDistance,
+                    averageSpeed,
+                )
             }
         }
 
@@ -30,6 +41,8 @@ data class TrackData(
     val id: Long,
     val name: String,
     val startTime: LocalDateTime?,
+    val totalDistance: Float,
+    val averageSpeed: Float,
 )
 
 @Suppress("UNCHECKED_CAST")

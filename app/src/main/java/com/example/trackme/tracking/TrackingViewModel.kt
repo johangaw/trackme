@@ -1,9 +1,14 @@
 package com.example.trackme.tracking
 
 import android.app.Application
-import androidx.lifecycle.*
-import com.example.trackme.data.*
-import kotlinx.coroutines.launch
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.trackme.data.AppDatabase
+import com.example.trackme.data.Track
+import com.example.trackme.data.TrackEntry
+import com.example.trackme.data.totalDistance
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -24,9 +29,7 @@ class TrackingViewModel(
 
     val totalDistance: LiveData<Float> =
         Transformations.map(activeTrackEntries) {
-            it?.map { entry -> entry.asLocation() }
-                ?.zipWithNext { l1, l2 -> l1.distanceTo(l2) }
-                ?.sum() ?: 0F
+            it?.let { totalDistance(it) } ?: 0f
         }
 
     val activeTrack: LiveData<Track> = database.trackDao().getAndObserve(trackId)

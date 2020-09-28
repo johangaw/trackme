@@ -1,6 +1,5 @@
 package com.example.trackme.tracking.ui
 
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -10,16 +9,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
+import com.example.trackme.common.ui.Distance
+import com.example.trackme.common.ui.Speed
 import com.example.trackme.data.TrackEntry
 import java.time.LocalDateTime
-import kotlin.math.roundToInt
 
 @Composable
 fun TrackingScreen(
     onStopClick: () -> Unit,
     startedAt: LocalDateTime?,
     totalLength: Float,
-    currentSpeed: Double,
+    currentSpeed: Float,
     trackEntries: List<TrackEntry>,
 ) {
     val normalizer = trackEntries.firstOrNull()?.let{ it.time } ?: 0
@@ -38,8 +38,8 @@ fun TrackingScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text(text = formatDistance(totalLength), style = MaterialTheme.typography.h3)
-            Text(text = "$currentSpeed m/s", style = MaterialTheme.typography.h3)
+            Distance(totalLength, style = MaterialTheme.typography.h3)
+            Speed(currentSpeed, style = MaterialTheme.typography.h3)
         }
         LineGraph(
             modifier = Modifier.fillMaxWidth().preferredHeight(200.dp),
@@ -60,10 +60,6 @@ fun TrackingScreen(
     }
 }
 
-fun formatDistance(distance: Float): String {
-    return "${((distance / 1000f) * 100f).roundToInt() / 100f} km"
-}
-
 @Composable
 @Preview(
     name = "Tracking in progress",
@@ -77,7 +73,7 @@ fun TrackingScreenPreview() {
             onStopClick = {},
             startedAt = trackStartedAt,
             totalLength = 1337F,
-            currentSpeed = 3.67,
+            currentSpeed = 3.67F,
             trackEntries = trackEntries,
         )
     }
@@ -95,7 +91,7 @@ fun NotTrackingScreenPreview() {
             onStopClick = {},
             startedAt = null,
             totalLength = 0F,
-            currentSpeed = 0.0,
+            currentSpeed = 0.0F,
             trackEntries = emptyList()
         )
     }

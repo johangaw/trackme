@@ -43,8 +43,8 @@ class TrackingFragment : Fragment() {
                 TrackingScreen(
                     onStopClick = this@TrackingFragment::stopLocationTracking,
                     startedAt = startedAt,
-                    totalLength = totalDistance ?: 0F,
-                    currentSpeed = 0.0,
+                    totalLength = totalDistance ?: 0f,
+                    currentSpeed = 0f,
                     trackEntries = trackEntries ?: emptyList(),
                 )
             }
