@@ -53,7 +53,8 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = { onClick(track) })
             .padding(4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Bottom,
     ) {
         Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "",
              style = MaterialTheme.typography.h5,
@@ -69,7 +70,7 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
 fun TracksScreenPreview() {
     val tracks: List<TrackData> = listOf(
         TrackData(1, "Track 1", LocalDateTime.now(), 13f, 3.5f),
-        TrackData(1, "Track 2", LocalDateTime.now(), 2.6f, 3.5f),
+        TrackData(1, "Track 2", LocalDateTime.now(), 2.6f, 3.55f),
         TrackData(1, "Track 3", LocalDateTime.now(), 3.6f, 2.5f),
         TrackData(1, "Track 4", LocalDateTime.now(), 13.7f, 0.5f),
     )
