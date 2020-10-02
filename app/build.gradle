@@ -39,6 +39,12 @@ android {
         kotlinCompilerVersion "1.4.0"
         kotlinCompilerExtensionVersion "1.0.0-alpha02"
     }
+
+    testOptions.unitTests.all {
+        testLogging {
+            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+        }
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
@@ -49,7 +55,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
 }
 
 def room_version = "2.2.5"
-def compose_version = "1.0.0-alpha03"
+def compose_version = "1.0.0-alpha04"
 def nav_version = "2.3.0"
 
 dependencies {
