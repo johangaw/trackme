@@ -13,6 +13,7 @@ import com.example.trackme.common.ui.Distance
 import com.example.trackme.common.ui.Speed
 import com.example.trackme.data.TrackEntry
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Composable
 fun TrackingScreen(
@@ -32,7 +33,13 @@ fun TrackingScreen(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Clock(startedAt)
+            if(started) {
+                Clock(startedAt)
+            } else {
+                val start = LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
+                val end = LocalDateTime.ofEpochSecond(trackEntries.last().time / 1000, 0, ZoneOffset.UTC)
+                StaticClock(start, end)
+            }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -92,13 +99,13 @@ fun NotTrackingScreenPreview() {
             startedAt = null,
             totalLength = 0F,
             currentSpeed = 0.0F,
-            trackEntries = emptyList()
+            trackEntries = trackEntries
         )
     }
 }
 
 fun createEntry(time: Long, speed: Float): TrackEntry =
-    TrackEntry(time = time,
+    TrackEntry(time = time * 1000,
                trackId = 0,
                latitude = 0.0,
                longitude = 0.0,
