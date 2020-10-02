@@ -35,7 +35,7 @@ fun TrackingScreen(
         ) {
             if(started) {
                 Clock(startedAt)
-            } else {
+            } else if(trackEntries.isNotEmpty()) {
                 val start = LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
                 val end = LocalDateTime.ofEpochSecond(trackEntries.last().time / 1000, 0, ZoneOffset.UTC)
                 StaticClock(start, end)
