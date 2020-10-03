@@ -5,7 +5,7 @@ plugins {
 }
 
 def room_version = "2.2.5"
-def compose_version = "1.0.0-alpha03"
+def compose_version = "1.0.0-alpha04"
 def nav_version = "2.3.0"
 
 dependencies {
@@ -35,6 +35,7 @@ dependencies {
     testImplementation "androidx.room:room-testing:$room_version"
 
     // Compose
+    implementation "androidx.compose.compiler:compiler:$compose_version"
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.ui:ui-tooling:$compose_version" // Tooling support (Previews, etc.)
     implementation "androidx.compose.foundation:foundation:$compose_version" // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
