@@ -52,6 +52,7 @@ data class DrawingContext(
 fun LineGraph(
     modifier: Modifier,
     data: List<Point>,
+    showPoints: Boolean = true
 ) {
     if(data.isEmpty()) {
         return
@@ -72,7 +73,7 @@ fun LineGraph(
         val color = Color.Red
         drawLine(drawingContext, data, Color.LightGray)
         drawBezierLine(drawingContext, data, color)
-        drawPoints(drawingContext, data, color)
+        if(showPoints) drawPoints(drawingContext, data, color)
     }
 }
 
@@ -151,6 +152,17 @@ fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) 
 }
 
 
+val samplePoints = listOf(
+    Point(0f, 0f),
+    Point(1f, 10f),
+    Point(2f, 6.4f),
+    Point(3f, 16.44f),
+    Point(4f, 10.44f),
+    Point(5f, 11.7f),
+    Point(6f, 2.3f),
+    Point(7f, 5.7f),
+)
+
 @Composable
 @Preview(
     device = Devices.PIXEL_3,
@@ -161,16 +173,23 @@ fun LineGraphPreview() {
     MaterialTheme {
         LineGraph(
             modifier = Modifier.fillMaxWidth().preferredHeight(300.dp),
-            data = listOf(
-                Point(0f, 0f),
-                Point(1f, 10f),
-                Point(2f, 6.4f),
-                Point(3f, 16.44f),
-                Point(4f, 10.44f),
-                Point(5f, 11.7f),
-                Point(6f, 2.3f),
-                Point(7f, 5.7f),
-            )
+            data = samplePoints
+        )
+    }
+}
+
+@Composable
+@Preview(
+    device = Devices.PIXEL_3,
+    showBackground = true,
+    uiMode = Configuration.ORIENTATION_LANDSCAPE
+)
+fun LineGraphPreviewWIthoutDots() {
+    MaterialTheme {
+        LineGraph(
+            modifier = Modifier.fillMaxWidth().preferredHeight(300.dp),
+            data = samplePoints,
+            showPoints = false
         )
     }
 }
