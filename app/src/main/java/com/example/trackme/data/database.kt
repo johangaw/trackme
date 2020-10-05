@@ -98,7 +98,6 @@ abstract class AppDatabase : RoomDatabase() {
                         AppDatabase::class.java,
                         "track-me-db"
                     )
-                        .fallbackToDestructiveMigration()
                         .build()
                 }
             }
