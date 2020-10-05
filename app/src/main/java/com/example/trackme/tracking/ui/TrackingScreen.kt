@@ -51,6 +51,7 @@ fun TrackingScreen(
         LineGraph(
             modifier = Modifier.fillMaxWidth().preferredHeight(200.dp),
             data = speedPoints,
+            showPoints = speedPoints.size < 10,
         )
         if (started) {
             Row(
