@@ -1,10 +1,7 @@
 package com.example.trackme.tracking
 
-import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import android.content.Context
+import androidx.lifecycle.*
 import com.example.trackme.data.AppDatabase
 import com.example.trackme.data.Track
 import com.example.trackme.data.TrackEntry
@@ -15,32 +12,39 @@ import java.time.ZoneId
 
 class TrackingViewModel(
     database: AppDatabase,
-    trackId: Long,
 ) : ViewModel() {
 
-    val activeTrackEntries: LiveData<List<TrackEntry>> =
-        database.trackEntryDao().getAllAndObserve(trackId)
+    private val _trackId: MutableLiveData<Long> = MutableLiveData()
 
-    val trackStartedAt: LiveData<LocalDateTime?> = Transformations.map(activeTrackEntries) {
+    val activeTrackEntries: LiveData<List<TrackEntry>> = _trackId.switchMap {
+        database.trackEntryDao().getAllAndObserve(it)
+    }
+
+    val trackStartedAt: LiveData<LocalDateTime?> = activeTrackEntries.map {
         it.firstOrNull()?.time?.let { timeStamp ->
             LocalDateTime.ofInstant(Instant.ofEpochMilli(timeStamp), ZoneId.systemDefault())
         } ?: LocalDateTime.now()
     }
 
-    val totalDistance: LiveData<Float> =
-        Transformations.map(activeTrackEntries) {
-            it?.let { totalDistance(it) } ?: 0f
-        }
+    val totalDistance: LiveData<Float> = activeTrackEntries.map {
+        it?.let { totalDistance(it) } ?: 0f
+    }
 
-    val activeTrack: LiveData<Track> = database.trackDao().getAndObserve(trackId)
+    val activeTrack: LiveData<Track> = _trackId.switchMap {
+        database.trackDao().getAndObserve(it)
+    }
+
+    fun setTrackId(id: Long) {
+        _trackId.postValue(id)
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
-class TrackingViewModelFactory(private val application: Application, private val trackId: Long) :
+class TrackingViewModelFactory(private val applicationContext: Context) :
     ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        val database = AppDatabase.getInstance(application)
-        return TrackingViewModel(database, trackId) as T
+        val database = AppDatabase.getInstance(applicationContext)
+        return TrackingViewModel(database) as T
     }
 }
 

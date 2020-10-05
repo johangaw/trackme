@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.onActive
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -21,7 +22,7 @@ class TrackingFragment : Fragment() {
         val paramName = resources.getString(R.string.tracking_route_track_id_param)
         trackingId = arguments?.getLong(paramName)
         require(trackingId != null) { "TrackId param is required in TrackingFragment" }
-        TrackingViewModelFactory(requireActivity().application, trackingId!!)
+        TrackingViewModelFactory(requireActivity().application)
     }
 
     override fun onCreateView(
@@ -30,6 +31,10 @@ class TrackingFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
+                onActive{
+                    viewModel.setTrackId(trackingId!!)
+                }
+
                 val totalDistance by viewModel.totalDistance.observeAsState()
                 val trackStartedAt by viewModel.trackStartedAt.observeAsState()
                 val activeTrack by viewModel.activeTrack.observeAsState()

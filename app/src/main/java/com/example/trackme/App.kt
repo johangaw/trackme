@@ -3,39 +3,39 @@ package com.example.trackme
 import android.os.Parcelable
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Text
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Providers
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.savedinstancestate.rememberSavedInstanceState
-import androidx.compose.runtime.staticAmbientOf
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ContextAmbient
+import androidx.compose.ui.viewinterop.viewModel
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
 import com.example.trackme.common.ui.Navigation
+import com.example.trackme.tracking.TrackingViewModel
+import com.example.trackme.tracking.TrackingViewModelFactory
+import com.example.trackme.tracking.ui.TrackingScreen
+import com.example.trackme.tracks.TracksViewModel
+import com.example.trackme.tracks.TracksViewModelFactory
+import com.example.trackme.tracks.ui.TracksScreen
 import kotlinx.android.parcel.Parcelize
-import kotlin.random.Random
+import java.time.LocalDateTime
 
 @Composable
-fun App(onBackPressedDispatcher: OnBackPressedDispatcher) {
+fun App(
+    onBackPressedDispatcher: OnBackPressedDispatcher,
+    requestLocationTracking: (cb: (newTrackId: Long) -> Unit) -> Unit,
+    stopLocationTracking: () -> Unit
+) {
     val navigator: Navigation<Destination> =
         rememberSavedInstanceState(saver = Navigation.saver(onBackPressedDispatcher)) {
-            Navigation(onBackPressedDispatcher,
-                       Destination.Red(0))
+            Navigation(onBackPressedDispatcher, Destination.Tracks)
         }
 
     Providers(NavigationAmbient provides navigator) {
         Crossfade(current = navigator.current) {
             when (it) {
-                Destination.Green -> GreenScreen()
-                is Destination.Red -> RedScreen(it.id)
+                Destination.Tracks -> TracksScreenWrapper(requestLocationTracking)
+                is Destination.Tracking -> TrackingScreenWrapper(it.trackId, stopLocationTracking)
             }
         }
     }
@@ -44,41 +44,56 @@ fun App(onBackPressedDispatcher: OnBackPressedDispatcher) {
 @Composable
 @Preview(device = Devices.PIXEL_3, showDecoration = true, showBackground = true)
 fun AppPreview() {
-    App(OnBackPressedDispatcher())
+    App(OnBackPressedDispatcher(), {}, {})
 }
 
 @Composable
-fun RedScreen(id: Int) {
-    val navigator = NavigationAmbient.current
-    Column(Modifier.fillMaxSize().background(Color.Red)) {
-        Button(onClick = { navigator.push(Destination.Green) }, backgroundColor = Color.Green) {
-            Text(text = "To Green")
-        }
-        Button(onClick = { navigator.pop() }, backgroundColor = Color.Gray) {
-            Text(text = "back")
-        }
-        Box(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = id.toString(),
-                style = MaterialTheme.typography.h1,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
+    val viewModel = viewModel(
+        modelClass = TrackingViewModel::class.java,
+        factory = TrackingViewModelFactory(ContextAmbient.current.applicationContext)
+    )
+    onCommit(trackId) {
+        viewModel.setTrackId(trackId)
     }
+
+    val totalDistance by viewModel.totalDistance.observeAsState(0f)
+    val trackStartedAt by viewModel.trackStartedAt.observeAsState()
+    val activeTrack by viewModel.activeTrack.observeAsState()
+    val trackEntries by viewModel.activeTrackEntries.observeAsState(emptyList())
+
+    val startedAt = activeTrack?.let { track ->
+        if (track.active) trackStartedAt ?: LocalDateTime.now()
+        else null
+    }
+
+    TrackingScreen(
+        onStopClick = stopLocationTracking,
+        startedAt = startedAt,
+        totalLength = totalDistance,
+        currentSpeed = 0f,
+        trackEntries = trackEntries,
+    )
 }
 
 @Composable
-fun GreenScreen() {
+fun TracksScreenWrapper(requestLocationTracking: (cb: (newTrackId: Long) -> Unit) -> Unit) {
+    val viewModel =
+        viewModel(
+            modelClass = TracksViewModel::class.java,
+            factory = TracksViewModelFactory(ContextAmbient.current.applicationContext)
+        )
+    val tracks by viewModel.tracks.observeAsState()
     val navigator = NavigationAmbient.current
-    Column(Modifier.fillMaxSize().background(Color.Green)) {
-        Button(onClick = { navigator.push(Destination.Red(Random.nextInt(0, 100))) },
-               backgroundColor = Color.Red) {
-            Text(text = "To Red")
+    TracksScreen(
+        tracks = tracks ?: emptyList(),
+        onTrackClick = { track -> navigator.push(Destination.Tracking(track.id)) },
+        onNewClick = {
+            requestLocationTracking { newTrackId: Long ->
+                navigator.push(Destination.Tracking(newTrackId))
+            }
         }
-        Button(onClick = { navigator.pop() }, backgroundColor = Color.Gray) {
-            Text(text = "back")
-        }
-    }
+    )
 }
 
 internal val NavigationAmbient = staticAmbientOf<Navigation<Destination>> {
@@ -88,10 +103,10 @@ internal val NavigationAmbient = staticAmbientOf<Navigation<Destination>> {
 sealed class Destination : Parcelable {
 
     @Parcelize
-    class Red(val id: Int) : Destination()
+    object Tracks : Destination()
 
     @Parcelize
-    object Green : Destination()
+    class Tracking(val trackId: Long) : Destination()
 }
 
 

@@ -1,6 +1,6 @@
 package com.example.trackme.tracks
 
-import android.app.Application
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
@@ -54,8 +54,8 @@ data class TrackData(
 )
 
 @Suppress("UNCHECKED_CAST")
-class TracksViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+class TracksViewModelFactory(private val applicationContext: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return TracksViewModel(AppDatabase.getInstance(application)) as T
+        return TracksViewModel(AppDatabase.getInstance(applicationContext)) as T
     }
 }

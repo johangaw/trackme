@@ -1,6 +1,6 @@
 package com.example.trackme.data
 
-import android.app.Application
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
@@ -90,7 +90,7 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         private var INSTANCE: AppDatabase? = null
 
-        fun getInstance(applicationContext: Application): AppDatabase {
+        fun getInstance(applicationContext: Context): AppDatabase {
             synchronized(this) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(
