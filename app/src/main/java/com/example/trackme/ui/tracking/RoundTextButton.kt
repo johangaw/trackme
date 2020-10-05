@@ -1,4 +1,4 @@
-package com.example.trackme.tracking.ui
+package com.example.trackme.ui.tracking
 
 import androidx.compose.foundation.Text
 import androidx.compose.foundation.background
@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Layout
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.tooling.preview.PreviewParameter

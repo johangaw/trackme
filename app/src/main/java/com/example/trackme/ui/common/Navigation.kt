@@ -1,4 +1,4 @@
-package com.example.trackme.common.ui
+package com.example.trackme.ui.common
 
 import android.os.Parcelable
 import androidx.activity.OnBackPressedCallback

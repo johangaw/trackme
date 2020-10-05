@@ -1,7 +1,7 @@
 package com.example.trackme
 
-import com.example.trackme.common.ui.SpeedUnit
-import com.example.trackme.common.ui.formatSpeed
+import com.example.trackme.ui.common.SpeedUnit
+import com.example.trackme.ui.common.formatSpeed
 import org.junit.Assert
 import org.junit.Test
 

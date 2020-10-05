@@ -4,8 +4,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.ui.test.*
-import com.example.trackme.tracks.TrackData
-import com.example.trackme.tracks.ui.TracksScreen
+import com.example.trackme.ui.tracks.TrackData
+import com.example.trackme.ui.tracks.TracksScreen
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule

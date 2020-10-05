@@ -1,4 +1,4 @@
-package com.example.trackme.tracking.ui
+package com.example.trackme.ui.tracking
 
 import android.content.res.Configuration
 import android.util.Log

@@ -1,4 +1,4 @@
-package com.example.trackme.tracks.ui
+package com.example.trackme.ui.tracks
 
 import androidx.compose.foundation.Icon
 import androidx.compose.foundation.Text
@@ -22,9 +22,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
-import com.example.trackme.common.ui.Distance
-import com.example.trackme.common.ui.Speed
-import com.example.trackme.tracks.TrackData
+import com.example.trackme.ui.common.Distance
+import com.example.trackme.ui.common.Speed
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

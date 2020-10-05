@@ -11,8 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.setContent
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.trackme.tracking.LocationTrackerService
-import com.example.trackme.tracks.TracksViewModel
+import com.example.trackme.services.LocationTrackerService
+import com.example.trackme.ui.tracks.TracksViewModel
 import kotlinx.coroutines.launch
 
 
