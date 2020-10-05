@@ -19,7 +19,7 @@ class TracksViewModel(private val database: AppDatabase) : ViewModel() {
                     ?.let { LocalDateTime.ofEpochSecond(it.time / 1000, 0, ZoneOffset.UTC) }
                 val totalDistance = totalDistance(it.entries)
                 val averageSpeed = it.entries.let { entries ->
-                    if (entries.isNotEmpty()) totalDistance / (entries.last().time - entries.first().time) else 0f
+                    if (entries.isNotEmpty()) totalDistance / (entries.last().time - entries.first().time) * 1000f else 0f
                 }
                 TrackData(
                     it.track.id,
