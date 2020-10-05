@@ -16,6 +16,27 @@ fun Speed(
     style: TextStyle = MaterialTheme.typography.body1,
     modifier: Modifier = Modifier,
 ) {
-    val roundedSpeed = (speed * 100).roundToInt() / 100f
-    Text(text = "$roundedSpeed m/s", style = style, modifier = modifier)
+    val unit = SettingsAmbient.current.speedUnit
+    Text(text = formatSpeed(speed, unit), style = style, modifier = modifier)
+}
+
+const val KNOTS_CONVERSION_FACTOR = 1852f / 3600f
+const val KILOMETERS_PER_HOUR_CONVERSION_FACTOR = 3.6f
+
+fun formatSpeed(speed: Float, unit: SpeedUnit): String {
+    return when(unit) {
+        SpeedUnit.METER_PER_SECOND -> {
+            val rounded = (speed * 100).roundToInt() / 100f
+            "$rounded m/s"
+        }
+        SpeedUnit.KILOMETERS_PER_HOUR -> {
+            val rounded = (speed / KILOMETERS_PER_HOUR_CONVERSION_FACTOR * 10).roundToInt() / 10f
+            "$rounded km/h"
+        }
+        SpeedUnit.KNOTS -> {
+            "${((speed / KNOTS_CONVERSION_FACTOR) * 10).roundToInt() / 10f} kn"
+        }
+    }
+
+
 }
