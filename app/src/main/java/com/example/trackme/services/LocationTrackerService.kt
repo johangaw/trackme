@@ -1,4 +1,4 @@
-package com.example.trackme.tracking
+package com.example.trackme.services
 
 import android.annotation.SuppressLint
 import android.app.*

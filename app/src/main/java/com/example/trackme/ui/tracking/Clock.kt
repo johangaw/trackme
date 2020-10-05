@@ -1,10 +1,9 @@
-package com.example.trackme.tracking.ui
+package com.example.trackme.ui.tracking
 
 import androidx.compose.foundation.Text
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job

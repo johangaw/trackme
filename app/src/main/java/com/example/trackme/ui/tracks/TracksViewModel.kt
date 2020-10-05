@@ -1,4 +1,4 @@
-package com.example.trackme.tracks
+package com.example.trackme.ui.tracks
 
 import android.content.Context
 import androidx.lifecycle.LiveData

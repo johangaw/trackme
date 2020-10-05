@@ -1,4 +1,4 @@
-package com.example.trackme.tracking.ui
+package com.example.trackme.ui.tracking
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
-import com.example.trackme.common.ui.Distance
-import com.example.trackme.common.ui.Speed
+import com.example.trackme.ui.common.Distance
+import com.example.trackme.ui.common.Speed
 import com.example.trackme.data.TrackEntry
 import java.time.LocalDateTime
 import java.time.ZoneOffset

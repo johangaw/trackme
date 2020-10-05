@@ -10,13 +10,13 @@ import androidx.compose.ui.platform.ContextAmbient
 import androidx.compose.ui.viewinterop.viewModel
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
-import com.example.trackme.common.ui.Navigation
-import com.example.trackme.tracking.TrackingViewModel
-import com.example.trackme.tracking.TrackingViewModelFactory
-import com.example.trackme.tracking.ui.TrackingScreen
-import com.example.trackme.tracks.TracksViewModel
-import com.example.trackme.tracks.TracksViewModelFactory
-import com.example.trackme.tracks.ui.TracksScreen
+import com.example.trackme.ui.common.Navigation
+import com.example.trackme.ui.tracking.TrackingViewModel
+import com.example.trackme.ui.tracking.TrackingViewModelFactory
+import com.example.trackme.ui.tracking.TrackingScreen
+import com.example.trackme.ui.tracks.TracksViewModel
+import com.example.trackme.ui.tracks.TracksViewModelFactory
+import com.example.trackme.ui.tracks.TracksScreen
 import kotlinx.android.parcel.Parcelize
 import java.time.LocalDateTime
 
