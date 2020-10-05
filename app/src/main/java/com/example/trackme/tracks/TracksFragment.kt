@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Providers
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
@@ -19,6 +20,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.trackme.R
+import com.example.trackme.common.ui.SettingsAmbient
+import com.example.trackme.common.ui.SpeedUnit
 import com.example.trackme.tracking.LocationTrackerService
 import com.example.trackme.tracks.ui.TracksScreen
 import kotlinx.coroutines.launch
@@ -43,16 +46,19 @@ class TracksFragment : Fragment() {
             setContent {
                 val tracks by viewModel.tracks.observeAsState()
 
-                TracksScreen(
-                    tracks = tracks ?: emptyList(),
-                    onTrackClick = { showTrack(it.id) },
-                    onNewClick = {
-                        lifecycleScope.launch {
-                            val newTrack = viewModel.newTrack()
-                            requestLocationTracking(newTrack.id)
+                Providers(SettingsAmbient provides SettingsAmbient.current.copy(speedUnit = SpeedUnit.KILOMETERS_PER_HOUR)) {
+                    TracksScreen(
+                        tracks = tracks ?: emptyList(),
+                        onTrackClick = { showTrack(it.id) },
+                        onNewClick = {
+                            lifecycleScope.launch {
+                                val newTrack = viewModel.newTrack()
+                                requestLocationTracking(newTrack.id)
+                            }
                         }
-                    }
-                )
+                    )
+                }
+
             }
         }
     }
