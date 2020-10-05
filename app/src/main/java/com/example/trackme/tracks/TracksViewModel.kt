@@ -41,7 +41,15 @@ data class TrackData(
     val id: Long,
     val name: String,
     val startTime: LocalDateTime?,
+
+    /**
+     * Distance in m
+     */
     val totalDistance: Float,
+
+    /**
+     * Speed in m/s
+     */
     val averageSpeed: Float,
 )
 
