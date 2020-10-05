@@ -16,7 +16,7 @@ class FormatSpeedTest {
     @Test
     fun `when unit is kmph it converts and formats with 1 decimals`() {
         val unit = SpeedUnit.KILOMETERS_PER_HOUR
-        Assert.assertEquals("2.8 km/h", formatSpeed(10f, unit))
+        Assert.assertEquals("36.0 km/h", formatSpeed(10f, unit))
     }
 
     @Test
