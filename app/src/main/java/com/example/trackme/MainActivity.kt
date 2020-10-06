@@ -8,16 +8,17 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.setContent
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.trackme.services.LocationTrackerService
-import com.example.trackme.ui.tracks.TracksViewModel
 import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
-    private val viewModel: TracksViewModel by viewModels { MainActivityViewModelFactory(application) }
+    private val viewModel: MainActivityViewModel by viewModels { MainActivityViewModelFactory(application) }
 
     private val hasLocationPermission: Boolean
         get() {
@@ -29,13 +30,24 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val startOnTrack = intent.getLongExtra(EXTRA_TRACK_ID, -1)
+        viewModel.focusTrack(startOnTrack)
         setContent {
+            val startTrackOn by viewModel.focusTrackRequests.observeAsState(FocusTrackRequest(-1))
             App(
                 onBackPressedDispatcher,
                 this::requestLocationTracking,
                 this::stopLocationTracking,
+                startTrackOn
             )
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val newFocusedTrack = intent?.getLongExtra(EXTRA_TRACK_ID, -1) ?: -1
+        if(newFocusedTrack >= 0)
+            viewModel.focusTrack(newFocusedTrack)
     }
 
     private fun stopLocationTracking() {
@@ -70,5 +82,12 @@ class MainActivity : AppCompatActivity() {
                 requestLocationTracking(cb)
             }
         }
+    }
+
+    companion object {
+        /**
+         * If provided the tracking screen for the selected track will be shown from the start
+         */
+        const val EXTRA_TRACK_ID = "com.example.trackme.TRACK_ID_EXTRA"
     }
 }

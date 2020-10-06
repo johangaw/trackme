@@ -40,6 +40,11 @@ class Navigation<T> private constructor(
         }
     }
 
+    fun popToTop() {
+        backStack.removeRange(1, backStack.size)
+        callback.isEnabled = canPop
+    }
+
     private val canPop get() = backStack.size > 1
 
     companion object {

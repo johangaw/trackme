@@ -45,7 +45,7 @@ class LocationTrackerService : Service() {
         super.onStartCommand(intent, flags, startId)
 
         val newTrackingId = intent?.getLongExtra(EXTRA_TRACK_ID, -1) ?: -1
-        if(trackId > 0) {
+        if (trackId > 0) {
             toggleTrackActivity(trackId, false)
         }
         require(newTrackingId >= 0
@@ -65,7 +65,7 @@ class LocationTrackerService : Service() {
             )
         }
 
-        return START_STICKY
+        return START_REDELIVER_INTENT
     }
 
     override fun onDestroy() {
@@ -111,7 +111,12 @@ class LocationTrackerService : Service() {
 
     private fun createShowProgressIntent(): PendingIntent {
         val showProgress = Intent(this, MainActivity::class.java)
-        return PendingIntent.getActivity(this, 0, showProgress, 0)
+        showProgress.putExtra(MainActivity.EXTRA_TRACK_ID, trackId)
+        return PendingIntent.getActivity(this,
+                                         0,
+                                         showProgress,
+                                         PendingIntent.FLAG_UPDATE_CURRENT,
+        )
     }
 
     private fun toggleTrackActivity(trackId: Long, newValue: Boolean) {
@@ -121,7 +126,7 @@ class LocationTrackerService : Service() {
     }
 
     companion object {
-        const val EXTRA_TRACK_ID = "EXTRA_TRACK_ID"
+        const val EXTRA_TRACK_ID = "com.example.trackme.TRACK_ID_EXTRA"
         const val CHANNEL_ID = "LocationTrackerServiceChannel"
         const val CHANNEL_NAME = "LocationTrackerServiceChannel"
     }

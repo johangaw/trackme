@@ -11,12 +11,12 @@ import androidx.compose.ui.viewinterop.viewModel
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
 import com.example.trackme.ui.common.Navigation
+import com.example.trackme.ui.tracking.TrackingScreen
 import com.example.trackme.ui.tracking.TrackingViewModel
 import com.example.trackme.ui.tracking.TrackingViewModelFactory
-import com.example.trackme.ui.tracking.TrackingScreen
+import com.example.trackme.ui.tracks.TracksScreen
 import com.example.trackme.ui.tracks.TracksViewModel
 import com.example.trackme.ui.tracks.TracksViewModelFactory
-import com.example.trackme.ui.tracks.TracksScreen
 import kotlinx.android.parcel.Parcelize
 import java.time.LocalDateTime
 
@@ -24,12 +24,20 @@ import java.time.LocalDateTime
 fun App(
     onBackPressedDispatcher: OnBackPressedDispatcher,
     requestLocationTracking: (cb: (newTrackId: Long) -> Unit) -> Unit,
-    stopLocationTracking: () -> Unit
+    stopLocationTracking: () -> Unit,
+    startOnTrack: FocusTrackRequest,
 ) {
     val navigator: Navigation<Destination> =
         rememberSavedInstanceState(saver = Navigation.saver(onBackPressedDispatcher)) {
             Navigation(onBackPressedDispatcher, Destination.Tracks)
         }
+
+    onCommit(startOnTrack) {
+        if (startOnTrack.trackId >= 0) {
+            navigator.popToTop()
+            navigator.push(Destination.Tracking(startOnTrack.trackId))
+        }
+    }
 
     Providers(NavigationAmbient provides navigator) {
         Crossfade(current = navigator.current) {
@@ -44,7 +52,7 @@ fun App(
 @Composable
 @Preview(device = Devices.PIXEL_3, showDecoration = true, showBackground = true)
 fun AppPreview() {
-    App(OnBackPressedDispatcher(), {}, {})
+    App(OnBackPressedDispatcher(), {}, {}, FocusTrackRequest(-1))
 }
 
 @Composable
