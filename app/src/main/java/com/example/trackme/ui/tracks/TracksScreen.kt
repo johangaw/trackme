@@ -1,21 +1,26 @@
 package com.example.trackme.ui.tracks
 
+import android.util.Log
+import androidx.compose.animation.animatedFloat
 import androidx.compose.foundation.Icon
 import androidx.compose.foundation.Text
+import androidx.compose.foundation.animation.FlingConfig
+import androidx.compose.foundation.animation.fling
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumnFor
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.gesture.scrollorientationlocking.Orientation
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
@@ -36,7 +41,7 @@ fun TracksScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                modifier = Modifier.semantics{ text = AnnotatedString("Create new track") },
+                modifier = Modifier.semantics { text = AnnotatedString("Create new track") },
                 onClick = onNewClick
             ) {
                 Icon(Icons.Filled.Add)
@@ -51,19 +56,35 @@ fun TracksScreen(
 
 @Composable
 fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { onClick(track) })
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "",
-             style = MaterialTheme.typography.h5,
-             modifier = Modifier.align(Alignment.CenterVertically))
-        Distance(track.totalDistance, style = MaterialTheme.typography.h6)
-        Speed(track.averageSpeed, style = MaterialTheme.typography.h6)
+
+    var offset = animatedFloat(0f)
+
+    Card(modifier = Modifier.padding(bottom = 16.dp).offset(offset.value.dp), elevation = 4.dp) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .clickable(onClick = { onClick(track) })
+                .draggable(
+                    Orientation.Horizontal,
+                    onDrag = {
+                        offset.snapTo(offset.value + it / 2f)
+                    },
+                    onDragStopped = {
+                        Log.d("UGG", it.toString())
+                        val config = FlingConfig(listOf(-75f, 0f))
+                        offset.fling(-it, config)
+                    }
+                ),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "",
+                 style = MaterialTheme.typography.h5,
+                 modifier = Modifier.align(Alignment.CenterVertically))
+            Distance(track.totalDistance, style = MaterialTheme.typography.h6)
+            Speed(track.averageSpeed, style = MaterialTheme.typography.h6)
+        }
     }
 }
 
