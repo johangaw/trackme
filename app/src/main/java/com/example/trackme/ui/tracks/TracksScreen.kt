@@ -1,6 +1,5 @@
 package com.example.trackme.ui.tracks
 
-import android.util.Log
 import androidx.compose.animation.animatedFloat
 import androidx.compose.foundation.Icon
 import androidx.compose.foundation.Text
@@ -34,6 +33,7 @@ import java.time.format.DateTimeFormatter
 fun TracksScreen(
     tracks: List<TrackData>,
     onTrackClick: (TrackData) -> Unit,
+    onTrackDelete: (TrackData) -> Unit,
     onNewClick: () -> Unit,
 ) {
     Scaffold(
@@ -47,14 +47,13 @@ fun TracksScreen(
         }
     ) {
         LazyColumnFor(items = tracks, contentPadding = it) { track ->
-            TrackRow(track = track, onClick = onTrackClick)
+            TrackRow(track = track, onSelect = onTrackClick, onDelete = onTrackDelete)
         }
     }
 }
 
 @Composable
-fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
-
+fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackData) -> Unit) {
     Box(Modifier.fillMaxWidth()) {
         Card(modifier = Modifier.sideDraggable().padding(bottom = 16.dp),
              elevation = 4.dp) {
@@ -62,7 +61,7 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
-                    .clickable(onClick = { onClick(track) }),
+                    .clickable(onClick = { onSelect(track) }),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom,
             ) {
@@ -73,9 +72,10 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
                 Speed(track.averageSpeed, style = MaterialTheme.typography.h6)
             }
         }
-        IconButton(onClick = {}, Modifier
-            .align(Alignment.CenterEnd)
-            .preferredWidth(75.dp)
+        IconButton(onClick = { onDelete(track) },
+                   modifier = Modifier
+                       .align(Alignment.CenterEnd)
+                       .preferredWidth(75.dp)
         ) {
             Icon(Icons.Default.Delete, tint = Color.Red)
         }
@@ -85,27 +85,27 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
 @Composable
 fun Modifier.sideDraggable(
     maxOffset: Float = -75f,
-    onEnd: (finished: Boolean) -> Unit = {}
+    onEnd: (finished: Boolean) -> Unit = {},
 ): Modifier {
-    val offset = animatedFloat(-75f)
+    val offset = animatedFloat(0f)
     return this
         .offset(offset.value.dp)
         .draggable(
-        Orientation.Horizontal,
-        onDrag = {
-            offset.snapTo(offset.value + it / 2f)
-        },
-        onDragStopped = {
-            val config = FlingConfig(listOf(maxOffset, 0f).sorted())
-            offset.fling(
-                -it,
-                config,
-                onAnimationEnd = { _, animationValue, _ ->
-                    onEnd(animationValue != 0f)
-                }
-            )
-        }
-    )
+            Orientation.Horizontal,
+            onDrag = {
+                offset.snapTo(offset.value + it / 2f)
+            },
+            onDragStopped = {
+                val config = FlingConfig(listOf(maxOffset, 0f).sorted())
+                offset.fling(
+                    -it,
+                    config,
+                    onAnimationEnd = { _, animationValue, _ ->
+                        onEnd(animationValue != 0f)
+                    }
+                )
+            }
+        )
 }
 
 
@@ -118,5 +118,5 @@ fun TracksScreenPreview() {
         TrackData(1, "Track 3", LocalDateTime.now(), 3.6f, 2.5f),
         TrackData(1, "Track 4", LocalDateTime.now(), 13.7f, 0.5f),
     )
-    TracksScreen(tracks = tracks, onTrackClick = {}, onNewClick = {})
+    TracksScreen(tracks = tracks, onTrackClick = {}, onNewClick = {}, onTrackDelete = {})
 }

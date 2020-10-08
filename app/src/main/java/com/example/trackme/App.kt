@@ -96,6 +96,9 @@ fun TracksScreenWrapper(requestLocationTracking: (cb: (newTrackId: Long) -> Unit
     TracksScreen(
         tracks = tracks ?: emptyList(),
         onTrackClick = { track -> navigator.push(Destination.Tracking(track.id)) },
+        onTrackDelete = { track ->
+            viewModel.removeTrack(track.id)
+        },
         onNewClick = {
             requestLocationTracking { newTrackId: Long ->
                 navigator.push(Destination.Tracking(newTrackId))
