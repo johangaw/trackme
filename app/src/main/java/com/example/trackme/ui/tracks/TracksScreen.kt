@@ -13,14 +13,12 @@ import androidx.compose.foundation.lazy.LazyColumnFor
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.gesture.scrollorientationlocking.Orientation
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
@@ -31,6 +29,7 @@ import com.example.trackme.ui.common.Distance
 import com.example.trackme.ui.common.Speed
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.abs
 
 @Composable
 fun TracksScreen(
@@ -57,33 +56,51 @@ fun TracksScreen(
 @Composable
 fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
 
-    var offset = animatedFloat(0f)
+    val offset = animatedFloat(0f)
 
-    Card(modifier = Modifier.padding(bottom = 16.dp).offset(offset.value.dp), elevation = 4.dp) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-                .clickable(onClick = { onClick(track) })
-                .draggable(
-                    Orientation.Horizontal,
-                    onDrag = {
-                        offset.snapTo(offset.value + it / 2f)
-                    },
-                    onDragStopped = {
-                        Log.d("UGG", it.toString())
-                        val config = FlingConfig(listOf(-75f, 0f))
-                        offset.fling(-it, config)
-                    }
-                ),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom,
+    Box(Modifier.fillMaxWidth()) {
+        Card(modifier = Modifier.padding(bottom = 16.dp).offset(offset.value.dp),
+             elevation = 4.dp) {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .clickable(onClick = { onClick(track) })
+                    .draggable(
+                        Orientation.Horizontal,
+                        onDrag = {
+                            offset.snapTo(offset.value + it / 2f)
+                        },
+                        onDragStopped = {
+                            Log.d("UGG", it.toString())
+                            val config = FlingConfig(listOf(-75f, 0f))
+                            offset.fling(
+                                -it,
+                                config,
+                                onAnimationEnd = { _, animationValue, _ ->
+                                    if (animationValue != 0f) {
+                                        // Selected
+
+                                    }
+                                }
+                            )
+                        }
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "",
+                     style = MaterialTheme.typography.h5,
+                     modifier = Modifier.align(Alignment.CenterVertically))
+                Distance(track.totalDistance, style = MaterialTheme.typography.h6)
+                Speed(track.averageSpeed, style = MaterialTheme.typography.h6)
+            }
+        }
+        IconButton(onClick = {}, Modifier
+            .align(Alignment.CenterEnd)
+            .preferredWidth(75.dp)
         ) {
-            Text(track.startTime?.format(DateTimeFormatter.ISO_DATE) ?: "",
-                 style = MaterialTheme.typography.h5,
-                 modifier = Modifier.align(Alignment.CenterVertically))
-            Distance(track.totalDistance, style = MaterialTheme.typography.h6)
-            Speed(track.averageSpeed, style = MaterialTheme.typography.h6)
+            Icon(Icons.Default.Delete, tint = Color.Red)
         }
     }
 }
