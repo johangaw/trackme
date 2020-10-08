@@ -1,5 +1,6 @@
 package com.example.trackme.ui.tracks
 
+import android.util.Log
 import androidx.compose.animation.animatedFloat
 import androidx.compose.foundation.Icon
 import androidx.compose.foundation.Text
@@ -13,12 +14,12 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.onCommit
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.gesture.scrollorientationlocking.Orientation
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
@@ -29,6 +30,7 @@ import com.example.trackme.ui.common.Distance
 import com.example.trackme.ui.common.Speed
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
 @Composable
 fun TracksScreen(
@@ -55,11 +57,20 @@ fun TracksScreen(
 
 @Composable
 fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackData) -> Unit) {
-    Box(Modifier.fillMaxWidth()
+    var deleted by remember { mutableStateOf(false) }
+    onCommit(track) {
+        deleted = false
+    }
+
+    Box(
+        Modifier.fillMaxWidth().shrinkOut(!deleted) { onDelete(track) }
     ) {
-        Card(modifier = Modifier
-            .sideDraggable(key = track.id)
-            .padding(bottom = 16.dp), elevation = 4.dp) {
+        Card(
+            modifier = Modifier
+                .sideDraggable(key = track.id)
+                .padding(bottom = 16.dp),
+            elevation = 4.dp
+        ) {
             Row(
                 modifier = Modifier
                     .padding(16.dp)
@@ -76,9 +87,7 @@ fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackDa
             }
         }
         IconButton(
-            onClick = {
-                onDelete(track)
-            },
+            onClick = { deleted = true },
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .preferredWidth(75.dp)
@@ -89,10 +98,33 @@ fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackDa
 }
 
 @Composable
+fun Modifier.shrinkOut(visible: Boolean, onEnd: () -> Unit = { }): Modifier {
+    val scaleHeightAnimation = animatedFloat(initVal = 1f)
+
+    onCommit(visible) {
+        when(visible) {
+            true -> scaleHeightAnimation.snapTo(1f)
+            false -> scaleHeightAnimation.animateTo(0f, onEnd = {_ ,endValue ->
+                Log.d("UGG", "endValue: $endValue")
+                onEnd()
+            })
+        }
+    }
+
+    return this.layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints)
+        val scaleHeight = scaleHeightAnimation.value
+        this.layout(placeable.width, (placeable.height.toFloat() * scaleHeight).roundToInt()) {
+            placeable.place(0, 0)
+        }
+    }
+}
+
+@Composable
 fun Modifier.sideDraggable(
     maxOffset: Float = -75f,
     onEnd: (finished: Boolean) -> Unit = {},
-    key: Any? = null
+    key: Any? = null,
 ): Modifier {
     val offset = animatedFloat(0f)
     onCommit(key) {
