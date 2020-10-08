@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.onCommit
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.gesture.scrollorientationlocking.Orientation
@@ -54,9 +55,11 @@ fun TracksScreen(
 
 @Composable
 fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackData) -> Unit) {
-    Box(Modifier.fillMaxWidth()) {
-        Card(modifier = Modifier.sideDraggable().padding(bottom = 16.dp),
-             elevation = 4.dp) {
+    Box(Modifier.fillMaxWidth()
+    ) {
+        Card(modifier = Modifier
+            .sideDraggable(key = track.id)
+            .padding(bottom = 16.dp), elevation = 4.dp) {
             Row(
                 modifier = Modifier
                     .padding(16.dp)
@@ -72,10 +75,13 @@ fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackDa
                 Speed(track.averageSpeed, style = MaterialTheme.typography.h6)
             }
         }
-        IconButton(onClick = { onDelete(track) },
-                   modifier = Modifier
-                       .align(Alignment.CenterEnd)
-                       .preferredWidth(75.dp)
+        IconButton(
+            onClick = {
+                onDelete(track)
+            },
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .preferredWidth(75.dp)
         ) {
             Icon(Icons.Default.Delete, tint = Color.Red)
         }
@@ -86,8 +92,13 @@ fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackDa
 fun Modifier.sideDraggable(
     maxOffset: Float = -75f,
     onEnd: (finished: Boolean) -> Unit = {},
+    key: Any? = null
 ): Modifier {
     val offset = animatedFloat(0f)
+    onCommit(key) {
+        offset.snapTo(0f)
+    }
+
     return this
         .offset(offset.value.dp)
         .draggable(
