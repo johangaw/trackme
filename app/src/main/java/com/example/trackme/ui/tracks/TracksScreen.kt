@@ -56,36 +56,14 @@ fun TracksScreen(
 @Composable
 fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
 
-    val offset = animatedFloat(0f)
-
     Box(Modifier.fillMaxWidth()) {
-        Card(modifier = Modifier.padding(bottom = 16.dp).offset(offset.value.dp),
+        Card(modifier = Modifier.padding(bottom = 16.dp).sideDraggable(),
              elevation = 4.dp) {
             Row(
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
-                    .clickable(onClick = { onClick(track) })
-                    .draggable(
-                        Orientation.Horizontal,
-                        onDrag = {
-                            offset.snapTo(offset.value + it / 2f)
-                        },
-                        onDragStopped = {
-                            Log.d("UGG", it.toString())
-                            val config = FlingConfig(listOf(-75f, 0f))
-                            offset.fling(
-                                -it,
-                                config,
-                                onAnimationEnd = { _, animationValue, _ ->
-                                    if (animationValue != 0f) {
-                                        // Selected
-
-                                    }
-                                }
-                            )
-                        }
-                    ),
+                    .clickable(onClick = { onClick(track) }),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom,
             ) {
@@ -103,6 +81,30 @@ fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
             Icon(Icons.Default.Delete, tint = Color.Red)
         }
     }
+}
+
+@Composable
+fun Modifier.sideDraggable(
+    maxOffset: Float = -75f,
+    onEnd: (finished: Boolean) -> Unit = {}
+): Modifier {
+    val offset = animatedFloat(0f)
+    return this.draggable(
+        Orientation.Horizontal,
+        onDrag = {
+            offset.snapTo(offset.value + it / 2f)
+        },
+        onDragStopped = {
+            val config = FlingConfig(listOf(maxOffset, 0f).sorted())
+            offset.fling(
+                -it,
+                config,
+                onAnimationEnd = { _, animationValue, _ ->
+                    onEnd(animationValue != 0f)
+                }
+            )
+        }
+    ).offset(offset.value.dp)
 }
 
 
