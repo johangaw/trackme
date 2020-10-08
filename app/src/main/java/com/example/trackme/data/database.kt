@@ -65,6 +65,9 @@ interface TrackDao {
 
     @Query("SELECT * FROM track WHERE id = :id")
     suspend fun get(id: Long): Track
+
+    @Delete
+    suspend fun remove(track: Track)
 }
 
 @Dao
@@ -77,9 +80,6 @@ interface TrackEntryDao {
 
     @Query("SELECT * FROM track_entry WHERE trackId == :trackId ORDER BY time ASC")
     fun getAllAndObserve(trackId: Long): LiveData<List<TrackEntry>>
-
-    @Query("DELETE FROM track_entry")
-    suspend fun removeTrack()
 }
 
 @Database(entities = [TrackEntry::class, Track::class], version = 4)

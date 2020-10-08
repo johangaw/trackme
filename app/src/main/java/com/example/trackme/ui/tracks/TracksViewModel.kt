@@ -1,13 +1,10 @@
 package com.example.trackme.ui.tracks
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.*
 import com.example.trackme.data.AppDatabase
-import com.example.trackme.data.Track
 import com.example.trackme.data.totalDistance
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -31,9 +28,11 @@ class TracksViewModel(private val database: AppDatabase) : ViewModel() {
             }
         }
 
-    suspend fun newTrack(): Track {
-        val trackId = database.trackDao().insert(Track()).first()
-        return database.trackDao().get(trackId)
+    fun removeTrack(trackId: Long) {
+        viewModelScope.launch {
+            val track = database.trackDao().get(trackId)
+            database.trackDao().remove(track)
+        }
     }
 }
 
