@@ -29,7 +29,6 @@ import com.example.trackme.ui.common.Distance
 import com.example.trackme.ui.common.Speed
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.abs
 
 @Composable
 fun TracksScreen(
@@ -57,7 +56,7 @@ fun TracksScreen(
 fun TrackRow(track: TrackData, onClick: (TrackData) -> Unit) {
 
     Box(Modifier.fillMaxWidth()) {
-        Card(modifier = Modifier.padding(bottom = 16.dp).sideDraggable(),
+        Card(modifier = Modifier.sideDraggable().padding(bottom = 16.dp),
              elevation = 4.dp) {
             Row(
                 modifier = Modifier
@@ -88,8 +87,10 @@ fun Modifier.sideDraggable(
     maxOffset: Float = -75f,
     onEnd: (finished: Boolean) -> Unit = {}
 ): Modifier {
-    val offset = animatedFloat(0f)
-    return this.draggable(
+    val offset = animatedFloat(-75f)
+    return this
+        .offset(offset.value.dp)
+        .draggable(
         Orientation.Horizontal,
         onDrag = {
             offset.snapTo(offset.value + it / 2f)
@@ -104,7 +105,7 @@ fun Modifier.sideDraggable(
                 }
             )
         }
-    ).offset(offset.value.dp)
+    )
 }
 
 
