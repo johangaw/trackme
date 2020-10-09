@@ -39,6 +39,8 @@ fun TracksScreen(
     onTrackDelete: (TrackData) -> Unit,
     onNewClick: () -> Unit,
 ) {
+    val uiStates = rememberUiStateMap(tracks.map { it.id })
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -50,24 +52,51 @@ fun TracksScreen(
         }
     ) {
         LazyColumnFor(items = tracks, contentPadding = it) { track ->
-            TrackRow(track = track, onSelect = onTrackClick, onDelete = onTrackDelete)
+            TrackRow(
+                track = track,
+                onSelect = onTrackClick,
+                onDelete = onTrackDelete,
+                uiState = uiStates[track.id]
+                    ?: error("Missing uiState for ${track.id} in $uiStates"),
+            )
         }
     }
 }
 
-@Composable
-fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackData) -> Unit) {
-    var deleted by remember { mutableStateOf(false) }
-    onCommit(track) {
-        deleted = false
-    }
+data class UiState(
+    val key: Any?,
+    val selected: MutableState<Boolean>,
+    val deleting: MutableState<Boolean>,
+)
 
+@Composable
+fun rememberUiStateMap(ids: List<Any?>): Map<Any?, UiState> {
+    val uiStates = remember { mutableMapOf<Any?, UiState>() }
+    onCommit(ids) {
+        ids.forEach {
+            uiStates.putIfAbsent(it,
+                                 UiState(it,
+                                         mutableStateOf(false),
+                                         mutableStateOf(false)))
+        }
+        (uiStates.keys - ids).forEach { uiStates.remove(it) }
+    }
+    return uiStates
+}
+
+@Composable
+fun TrackRow(
+    track: TrackData,
+    onSelect: (TrackData) -> Unit,
+    onDelete: (TrackData) -> Unit,
+    uiState: UiState,
+) {
     Box(
-        Modifier.fillMaxWidth().shrinkOut(!deleted) { onDelete(track) }
+        Modifier.fillMaxWidth().shrinkOut(!uiState.deleting.value) { onDelete(track) }
     ) {
         Card(
             modifier = Modifier
-                .sideDraggable(key = track.id)
+                .sideDraggable(state = uiState)
                 .padding(bottom = 16.dp),
             elevation = 4.dp
         ) {
@@ -87,7 +116,7 @@ fun TrackRow(track: TrackData, onSelect: (TrackData) -> Unit, onDelete: (TrackDa
             }
         }
         IconButton(
-            onClick = { deleted = true },
+            onClick = { uiState.deleting.value = true },
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .preferredWidth(75.dp)
@@ -102,12 +131,9 @@ fun Modifier.shrinkOut(visible: Boolean, onEnd: () -> Unit = { }): Modifier {
     val scaleHeightAnimation = animatedFloat(initVal = 1f)
 
     onCommit(visible) {
-        when(visible) {
+        when (visible) {
             true -> scaleHeightAnimation.snapTo(1f)
-            false -> scaleHeightAnimation.animateTo(0f, onEnd = {_ ,endValue ->
-                Log.d("UGG", "endValue: $endValue")
-                onEnd()
-            })
+            false -> scaleHeightAnimation.animateTo(0f) { _, _ -> onEnd() }
         }
     }
 
@@ -124,13 +150,12 @@ fun Modifier.shrinkOut(visible: Boolean, onEnd: () -> Unit = { }): Modifier {
 fun Modifier.sideDraggable(
     maxOffset: Float = -75f,
     onEnd: (finished: Boolean) -> Unit = {},
-    key: Any? = null,
+    state: UiState,
 ): Modifier {
     val offset = animatedFloat(0f)
-    onCommit(key) {
-        offset.snapTo(0f)
+    onCommit(state.key) {
+        offset.snapTo(if (state.selected.value) maxOffset else 0f)
     }
-
     return this
         .offset(offset.value.dp)
         .draggable(
@@ -142,11 +167,13 @@ fun Modifier.sideDraggable(
                 val config = FlingConfig(listOf(maxOffset, 0f).sorted())
                 offset.fling(
                     -it,
-                    config,
-                    onAnimationEnd = { _, animationValue, _ ->
-                        onEnd(animationValue != 0f)
-                    }
-                )
+                    config
+                ) { reason, animationValue, _ ->
+                    Log.d("UGG", "flingEnd  $reason")
+                    val selected = animationValue != 0f
+                    state.selected.value = selected
+                    onEnd(selected)
+                }
             }
         )
 }
