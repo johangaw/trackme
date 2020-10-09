@@ -27,7 +27,7 @@ data class Point(val x: Float, val y: Float) {
     }
 }
 
-class Interpolation(srcFrom: Float, srcTo: Float, targetFrom: Float, targetTo: Float) {
+private class Interpolation(srcFrom: Float, srcTo: Float, targetFrom: Float, targetTo: Float) {
     private var scaleFactor: Float = 1f
     private var offset: Float = 0f
 
@@ -41,7 +41,7 @@ class Interpolation(srcFrom: Float, srcTo: Float, targetFrom: Float, targetTo: F
     }
 }
 
-data class DrawingContext(
+private data class DrawingContext(
     val xInter: Interpolation,
     val yInter: Interpolation,
     val drawScope: DrawScope,
@@ -87,11 +87,11 @@ private fun getDrawingContext(drawScope: DrawScope, data: List<Point>): DrawingC
     return DrawingContext(xInter, yInter, drawScope)
 }
 
-fun drawOriginLines(drawingContext: DrawingContext) {
+private fun drawOriginLines(drawingContext: DrawingContext) {
     drawSelectionLine(drawingContext, SelectionLine(0f, 0f, 1f, Color.Black))
 }
 
-fun drawSelectionLine(drawingContext: DrawingContext, selection: SelectionLine) {
+private fun drawSelectionLine(drawingContext: DrawingContext, selection: SelectionLine) {
     val (xInter, yInter, _) = drawingContext
     drawingContext.drawScope.apply {
         if (selection.x != null) {
@@ -115,7 +115,7 @@ fun drawSelectionLine(drawingContext: DrawingContext, selection: SelectionLine) 
     }
 }
 
-fun drawLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
+private fun drawLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
     val (xInter, yInter) = drawingContext
     drawingContext.drawScope.apply {
         val path = Path()
@@ -128,7 +128,7 @@ fun drawLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
     }
 }
 
-fun drawBezierLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
+private fun drawBezierLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
     val (xInter, yInter) = drawingContext
     drawingContext.drawScope.apply {
         val path = Path()
@@ -169,7 +169,7 @@ fun drawBezierLine(drawingContext: DrawingContext, data: List<Point>, color: Col
     }
 }
 
-fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) {
+private fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) {
     val (xInter, yInter) = drawingContext
     drawingContext.drawScope.apply {
         data.forEach { p ->
@@ -181,7 +181,7 @@ fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) 
 }
 
 
-val samplePoints = listOf(
+private val samplePoints = listOf(
     Point(0f, 6f),
     Point(1f, 10f),
     Point(2f, 6.4f),
