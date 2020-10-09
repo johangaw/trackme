@@ -61,28 +61,30 @@ fun LineGraph(
     showPoints: Boolean = true,
     selectionLine: SelectionLine? = null,
 ) {
-    if(data.isEmpty()) {
-        return
-    }
-
-    val xMin = data.minOfOrNull { it.x } ?: 0f
-    val xMax = data.maxOfOrNull { it.x } ?: 0f
-    val yMin = data.minOfOrNull { it.y } ?: 0f
-    val yMax = data.maxOfOrNull { it.y } ?: 0f
-
     Canvas(modifier = modifier.background(Color.White)) {
-        val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, size.width)
-        val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, size.height, 0f)
-        val drawingContext = DrawingContext(xInter, yInter, this)
+        val drawingContext = getDrawingContext(this, data)
 
         drawOriginLines(drawingContext)
 
         val color = Color.Red
-        drawLine(drawingContext, data, Color.LightGray)
-        drawBezierLine(drawingContext, data, color)
-        if(showPoints) drawPoints(drawingContext, data, color)
-        if(selectionLine != null) drawSelectionLine(drawingContext, selectionLine)
+        if (data.isNotEmpty()) drawLine(drawingContext, data, Color.LightGray)
+        if (data.isNotEmpty()) drawBezierLine(drawingContext, data, color)
+        if (showPoints && data.isNotEmpty()) drawPoints(drawingContext, data, color)
+        if (selectionLine != null) drawSelectionLine(drawingContext, selectionLine)
     }
+}
+
+private fun getDrawingContext(drawScope: DrawScope, data: List<Point>): DrawingContext {
+    val noLines = data.size < 2
+
+    val xMin = data.minOfOrNull { it.x } ?: 0f
+    val yMin = (data.minOfOrNull { it.y } ?: 0f).coerceAtMost(0f)
+    val xMax = if(noLines) xMin + 1f else data.maxOf { it.x }
+    val yMax = if(noLines) yMin + 1f else data.maxOf { it.y }
+
+    val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, drawScope.size.width)
+    val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, drawScope.size.height, 0f)
+    return DrawingContext(xInter, yInter, drawScope)
 }
 
 fun drawOriginLines(drawingContext: DrawingContext) {
@@ -92,7 +94,7 @@ fun drawOriginLines(drawingContext: DrawingContext) {
 fun drawSelectionLine(drawingContext: DrawingContext, selection: SelectionLine) {
     val (xInter, yInter, _) = drawingContext
     drawingContext.drawScope.apply {
-        if(selection.x != null) {
+        if (selection.x != null) {
             val verticalSelection = xInter.interpolate(selection.x)
             this.drawLine(
                 selection.color,
@@ -101,7 +103,7 @@ fun drawSelectionLine(drawingContext: DrawingContext, selection: SelectionLine) 
                 selection.width
             )
         }
-        if(selection.y != null) {
+        if (selection.y != null) {
             val horizontalSelection = yInter.interpolate(selection.y)
             this.drawLine(
                 selection.color,
@@ -135,7 +137,7 @@ fun drawBezierLine(drawingContext: DrawingContext, data: List<Point>, color: Col
 
         val mMap: MutableMap<Int, Float> = mutableMapOf()
         (1..data.count() - 2).forEach { i ->
-            val (p0, p1, p2) = data.subList(i-1, i+2)
+            val (p0, p1, p2) = data.subList(i - 1, i + 2)
 
             val m = ((p2.y - p1.y) / (p2.x - p1.x) + (p1.y - p0.y) / (p1.x - p0.x)) * 0.5f
             mMap[i] = m
@@ -144,10 +146,11 @@ fun drawBezierLine(drawingContext: DrawingContext, data: List<Point>, color: Col
         mMap[data.count() - 1] = 0f
 
         (1 until data.count()).forEach { i ->
-            val (pMinus, pi) = data.subList(i-1, i+1)
-            val divider  = 5f
-            val pp1 = Point(pMinus.x + 1/divider,  pMinus.y + mMap.getOrDefault(i-1, 0f) / divider)
-            val pp2 = Point(pi.x - 1/divider, pi.y - mMap.getOrDefault(i, 0f) / divider)
+            val (pMinus, pi) = data.subList(i - 1, i + 1)
+            val divider = 5f
+            val pp1 =
+                Point(pMinus.x + 1 / divider, pMinus.y + mMap.getOrDefault(i - 1, 0f) / divider)
+            val pp2 = Point(pi.x - 1 / divider, pi.y - mMap.getOrDefault(i, 0f) / divider)
 
             path.cubicTo(
                 xInter.interpolate(pp1.x),
@@ -179,7 +182,7 @@ fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color: Color) 
 
 
 val samplePoints = listOf(
-    Point(0f, 0f),
+    Point(0f, 6f),
     Point(1f, 10f),
     Point(2f, 6.4f),
     Point(3f, 16.44f),
@@ -198,7 +201,8 @@ val samplePoints = listOf(
 fun LineGraphPreview() {
     MaterialTheme {
         LineGraph(
-            modifier = Modifier.fillMaxWidth().preferredHeight(300.dp),
+            modifier = Modifier.fillMaxWidth()
+                .preferredHeight(300.dp),
             data = samplePoints
         )
     }
@@ -213,10 +217,28 @@ fun LineGraphPreview() {
 fun LineGraphPreview_WithoutDots_WithSelectionLine() {
     MaterialTheme {
         LineGraph(
-            modifier = Modifier.fillMaxWidth().preferredHeight(300.dp),
+            modifier = Modifier.fillMaxWidth()
+                .preferredHeight(300.dp),
             data = samplePoints,
             showPoints = false,
             SelectionLine(5f, 10f, 2f, Color.Blue)
+        )
+    }
+}
+
+@Composable
+@Preview(
+    device = Devices.PIXEL_3,
+    showBackground = true,
+    uiMode = Configuration.ORIENTATION_LANDSCAPE
+)
+fun LineGraphPreview_WithoutData() {
+    MaterialTheme {
+        LineGraph(
+            modifier = Modifier.fillMaxWidth()
+                .preferredHeight(300.dp),
+            showPoints = true,
+            data = listOf(Point(1f, 10f)),
         )
     }
 }
