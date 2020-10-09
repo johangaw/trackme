@@ -16,19 +16,12 @@ const val DEFAULT_TEXT = "00:00:00"
 
 @Composable
 fun Clock(startTime: LocalDateTime?, modifier: Modifier = Modifier) {
-    var text by remember { mutableStateOf(DEFAULT_TEXT) }
-    var runningJob: Job? by remember { mutableStateOf(null) }
-
+    var text by remember { mutableStateOf("") }
+    timer(startTime != null, 500) {
+        text = formatTime(startTime!!, LocalDateTime.now())
+    }
     onCommit(startTime) {
-        if (startTime == null) {
-            runningJob?.cancel()
-            text = DEFAULT_TEXT
-        } else {
-            runningJob = timer(500) {
-                text = formatTime(startTime, LocalDateTime.now())
-            }
-            onDispose { runningJob?.cancel() }
-        }
+        if(startTime == null) text = DEFAULT_TEXT
     }
 
     Text(text = text, modifier = modifier, style = MaterialTheme.typography.h3)
@@ -44,9 +37,10 @@ fun formatTime(start: LocalDateTime, end: LocalDateTime): String {
     }:${seconds.toString().padStart(2, '0')}"
 }
 
-fun timer(delay: Long, cb: () -> Unit): Job {
-    return GlobalScope.launch {
-        while (true) {
+@Composable
+fun timer(running: Boolean, delay: Long, cb: () -> Unit) {
+    launchInComposition(running) {
+        while (running) {
             cb()
             delay(delay)
         }
