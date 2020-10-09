@@ -29,17 +29,12 @@ fun TrackingScreen(
     val started = startedAt != null
 
     Column(Modifier.fillMaxSize()) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if(started) {
-                Clock(startedAt)
-            } else if(trackEntries.isNotEmpty()) {
-                val start = LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
-                val end = LocalDateTime.ofEpochSecond(trackEntries.last().time / 1000, 0, ZoneOffset.UTC)
-                StaticClock(start, end)
-            }
+        if(started) {
+            Clock(startedAt, Modifier.align(Alignment.CenterHorizontally))
+        } else if(trackEntries.isNotEmpty()) {
+            val start = LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
+            val end = LocalDateTime.ofEpochSecond(trackEntries.last().time / 1000, 0, ZoneOffset.UTC)
+            StaticClock(start, end, Modifier.align(Alignment.CenterHorizontally))
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -54,10 +49,9 @@ fun TrackingScreen(
             showPoints = speedPoints.size < 10,
         )
         if (started) {
-            Row(
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                alignment = Alignment.Center
             ) {
                 RoundTextButton(
                     onClick = onStopClick,
