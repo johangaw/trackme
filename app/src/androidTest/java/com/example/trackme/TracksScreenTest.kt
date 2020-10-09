@@ -33,7 +33,8 @@ class TracksScreenTest {
                 TracksScreen(
                     trackData,
                     { lastClicked = it },
-                    { newClicked = true }
+                    {},
+                    { newClicked = true },
                 )
             }
         }
