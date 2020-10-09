@@ -1,7 +1,6 @@
 package com.example.trackme.ui.tracking
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,11 +47,19 @@ data class DrawingContext(
     val drawScope: DrawScope,
 )
 
+data class SelectionLine(
+    val x: Float?,
+    val y: Float?,
+    val width: Float,
+    val color: Color,
+)
+
 @Composable
 fun LineGraph(
     modifier: Modifier,
     data: List<Point>,
-    showPoints: Boolean = true
+    showPoints: Boolean = true,
+    selectionLine: SelectionLine? = null,
 ) {
     if(data.isEmpty()) {
         return
@@ -74,16 +81,35 @@ fun LineGraph(
         drawLine(drawingContext, data, Color.LightGray)
         drawBezierLine(drawingContext, data, color)
         if(showPoints) drawPoints(drawingContext, data, color)
+        if(selectionLine != null) drawSelectionLine(drawingContext, selectionLine)
     }
 }
 
 fun drawOriginLines(drawingContext: DrawingContext) {
-    val (xInter, yInter) = drawingContext
+    drawSelectionLine(drawingContext, SelectionLine(0f, 0f, 1f, Color.Black))
+}
+
+fun drawSelectionLine(drawingContext: DrawingContext, selection: SelectionLine) {
+    val (xInter, yInter, _) = drawingContext
     drawingContext.drawScope.apply {
-        val xOrigin = xInter.interpolate(0f)
-        val yOrigin = yInter.interpolate(0f)
-        drawLine(Color.Black, Offset(0f, yOrigin), Offset(size.width, yOrigin))
-        drawLine(Color.Black, Offset(xOrigin, 0f), Offset(xOrigin, size.height))
+        if(selection.x != null) {
+            val verticalSelection = xInter.interpolate(selection.x)
+            this.drawLine(
+                selection.color,
+                Offset(verticalSelection, 0f),
+                Offset(verticalSelection, size.height),
+                selection.width
+            )
+        }
+        if(selection.y != null) {
+            val horizontalSelection = yInter.interpolate(selection.y)
+            this.drawLine(
+                selection.color,
+                Offset(0f, horizontalSelection),
+                Offset(size.width, horizontalSelection),
+                selection.width
+            )
+        }
     }
 }
 
@@ -184,12 +210,13 @@ fun LineGraphPreview() {
     showBackground = true,
     uiMode = Configuration.ORIENTATION_LANDSCAPE
 )
-fun LineGraphPreviewWIthoutDots() {
+fun LineGraphPreview_WithoutDots_WithSelectionLine() {
     MaterialTheme {
         LineGraph(
             modifier = Modifier.fillMaxWidth().preferredHeight(300.dp),
             data = samplePoints,
-            showPoints = false
+            showPoints = false,
+            SelectionLine(5f, 10f, 2f, Color.Blue)
         )
     }
 }
