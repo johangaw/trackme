@@ -2,10 +2,13 @@ package com.example.trackme.ui.tracking
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Slider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
@@ -14,6 +17,7 @@ import com.example.trackme.ui.common.Speed
 import com.example.trackme.data.TrackEntry
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import kotlin.math.abs
 
 @Composable
 fun TrackingScreen(
@@ -23,13 +27,10 @@ fun TrackingScreen(
     currentSpeed: Float,
     trackEntries: List<TrackEntry>,
 ) {
-    val normalizer = trackEntries.firstOrNull()?.time ?: 0
-    val speedPoints =
-        remember(trackEntries) { trackEntries.map { Point((it.time - normalizer).toFloat(), it.speed) } }
-    val started = startedAt != null
+    val running = startedAt != null
 
     Column(Modifier.fillMaxSize()) {
-        if(started) {
+        if(running) {
             Clock(startedAt, Modifier.align(Alignment.CenterHorizontally))
         } else if(trackEntries.isNotEmpty()) {
             val start = LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
@@ -43,12 +44,20 @@ fun TrackingScreen(
             Distance(totalLength, style = MaterialTheme.typography.h3)
             Speed(currentSpeed, style = MaterialTheme.typography.h3)
         }
+
+        val normalizer = trackEntries.firstOrNull()?.time ?: 0
+        val speedPoints =
+            remember(trackEntries) { trackEntries.map { Point((it.time - normalizer).toFloat(), it.speed) } }
+        val firstPoint = speedPoints.firstOrNull() ?: Point(0f, 0f)
+        val (value, setValue) = remember { mutableStateOf(firstPoint.x) }
+        val selection = SelectionLine(value, null, 4f, Color.Yellow)
         LineGraph(
             modifier = Modifier.fillMaxWidth().preferredHeight(200.dp),
             data = speedPoints,
             showPoints = speedPoints.size < 10,
+            selectionLine = if(!running) selection else null,
         )
-        if (started) {
+        if (running) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 alignment = Alignment.Center
@@ -58,6 +67,18 @@ fun TrackingScreen(
                     text = "Stop",
                 )
             }
+        } else {
+            val selected = speedPoints.minByOrNull { abs(it.x - value) }
+            val rangeLower = speedPoints.minOfOrNull { it.x } ?: 0f
+            val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
+            Spacer(modifier = Modifier.preferredHeight(32.dp))
+            Speed(speed = selected?.y ?: -1f, style = MaterialTheme.typography.h3)
+            Slider(
+                value = value,
+                onValueChange = setValue,
+                valueRange = rangeLower..rangeUpper,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
         }
     }
 }
