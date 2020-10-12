@@ -88,7 +88,7 @@ fun TrackRow(
     ) {
         Card(
             modifier = Modifier
-                .sideDraggable(key = uiState.key, selectedState = uiState.selected)
+                .sideDraggable(maxOffset = 75f, key = uiState.key, selectedState = uiState.selected)
                 .padding(bottom = 16.dp),
             elevation = 4.dp
         ) {
@@ -110,7 +110,7 @@ fun TrackRow(
         IconButton(
             onClick = { uiState.deleting.value = true },
             modifier = Modifier
-                .align(Alignment.CenterEnd)
+                .align(Alignment.CenterStart)
                 .preferredWidth(75.dp)
         ) {
             Icon(Icons.Default.Delete, tint = Color.Red)
