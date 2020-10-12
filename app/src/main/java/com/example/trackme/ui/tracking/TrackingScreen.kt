@@ -1,5 +1,6 @@
 package com.example.trackme.ui.tracking
 
+import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Slider
@@ -12,12 +13,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
+import com.example.trackme.data.TrackEntry
 import com.example.trackme.ui.common.Distance
 import com.example.trackme.ui.common.Speed
-import com.example.trackme.data.TrackEntry
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @Composable
 fun TrackingScreen(
@@ -30,11 +32,13 @@ fun TrackingScreen(
     val running = startedAt != null
 
     Column(Modifier.fillMaxSize()) {
-        if(running) {
+        if (running) {
             Clock(startedAt, Modifier.align(Alignment.CenterHorizontally))
-        } else if(trackEntries.isNotEmpty()) {
-            val start = LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
-            val end = LocalDateTime.ofEpochSecond(trackEntries.last().time / 1000, 0, ZoneOffset.UTC)
+        } else if (trackEntries.isNotEmpty()) {
+            val start =
+                LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
+            val end =
+                LocalDateTime.ofEpochSecond(trackEntries.last().time / 1000, 0, ZoneOffset.UTC)
             StaticClock(start, end, Modifier.align(Alignment.CenterHorizontally))
         }
         Row(
@@ -47,15 +51,21 @@ fun TrackingScreen(
 
         val normalizer = trackEntries.firstOrNull()?.time ?: 0
         val speedPoints =
-            remember(trackEntries) { trackEntries.map { Point((it.time - normalizer).toFloat(), it.speed) } }
+            remember(trackEntries) {
+                trackEntries.map {
+                    Point((it.time - normalizer).toFloat(),
+                          it.speed)
+                }
+            }
         val firstPoint = speedPoints.firstOrNull() ?: Point(0f, 0f)
         val (value, setValue) = remember { mutableStateOf(firstPoint.x) }
         val selection = SelectionLine(value, null, 4f, Color.Yellow)
         LineGraph(
-            modifier = Modifier.fillMaxWidth().preferredHeight(200.dp),
+            modifier = Modifier.fillMaxWidth()
+                .preferredHeight(200.dp),
             data = speedPoints,
             showPoints = speedPoints.size < 10,
-            selectionLine = if(!running) selection else null,
+            selectionLine = if (!running) selection else null,
         )
         if (running) {
             Box(
@@ -68,11 +78,13 @@ fun TrackingScreen(
                 )
             }
         } else {
-            val selected = speedPoints.minByOrNull { abs(it.x - value) }
+            val selected = search(value.toLong() + normalizer, trackEntries)
             val rangeLower = speedPoints.minOfOrNull { it.x } ?: 0f
             val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
             Spacer(modifier = Modifier.preferredHeight(32.dp))
-            Speed(speed = selected?.y ?: -1f, style = MaterialTheme.typography.h3)
+
+            Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h3)
+            Text("${selected?.altitude?.roundToInt() ?: -1} mas", style = MaterialTheme.typography.h3)
             Slider(
                 value = value,
                 onValueChange = setValue,
@@ -83,6 +95,10 @@ fun TrackingScreen(
     }
 }
 
+fun search(time: Long, entries: List<TrackEntry>): TrackEntry? {
+    return entries.minByOrNull { abs(it.time - time) }
+}
+
 @Composable
 @Preview(
     name = "Tracking in progress",
@@ -90,7 +106,10 @@ fun TrackingScreen(
     showBackground = true,
 )
 fun TrackingScreenPreview() {
-    val trackStartedAt = LocalDateTime.now().minusHours(1).minusMinutes(2).minusSeconds(36)
+    val trackStartedAt = LocalDateTime.now()
+        .minusHours(1)
+        .minusMinutes(2)
+        .minusSeconds(36)
     MaterialTheme {
         TrackingScreen(
             onStopClick = {},
