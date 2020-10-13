@@ -51,7 +51,7 @@ android {
     buildToolsVersion "30.0.1"
 
     defaultConfig {
-        applicationId "com.example.trackme"
+        applicationId "com.trackme.android"
         minSdkVersion 28
         targetSdkVersion 30
         versionCode 1
