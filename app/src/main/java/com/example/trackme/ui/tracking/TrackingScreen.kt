@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.ui.tooling.preview.Devices
 import androidx.ui.tooling.preview.Preview
 import com.example.trackme.data.TrackEntry
+import com.example.trackme.ui.common.Altitude
 import com.example.trackme.ui.common.Distance
 import com.example.trackme.ui.common.Speed
 import java.time.LocalDateTime
@@ -83,8 +84,13 @@ fun TrackingScreen(
             val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
             Spacer(modifier = Modifier.preferredHeight(32.dp))
 
-            Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h3)
-            Text("${selected?.altitude?.roundToInt() ?: -1} mas", style = MaterialTheme.typography.h3)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ){
+                Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h3)
+                Altitude(selected?.altitude ?: -1.0, style = MaterialTheme.typography.h3)
+            }
             Slider(
                 value = value,
                 onValueChange = setValue,
