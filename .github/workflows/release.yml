@@ -16,7 +16,7 @@ jobs:
 #        uses: actions/setup-java@v1
 #        with:
 #          java-version: 1.8
-#      - name: Prepare upload key
+      - name: Prepare upload key
         run: |
           echo "keyAlias=${{ secrets.TEST_SECRET }}" >> keystore.properties
           cat keystore.properties
