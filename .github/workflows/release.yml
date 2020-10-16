@@ -12,23 +12,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-#      - name: set up JDK 1.8
-#        uses: actions/setup-java@v1
-#        with:
-#          java-version: 1.8
-      - name: Prepare upload key
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Prepare keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+
+      - name: Prepare keystore.properties
         run: |
-          echo "keyAlias=${{ secrets.TEST_SECRET }}" >> keystore.properties
-          cat keystore.properties
-#      - name: build aab
-#        run: ./gradlew bundleRelease
+          echo "keyAlias=trackme-upload" >> keystore.properties
+          echo "keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}" >> keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
+          echo "storeFile=./keystore.jks" >> keystore.properties
 
+      - name: Build aab
+        run: ./gradlew bundleRelease
 
-#      - name: Create release on google play console
-#        uses: johangus/android-release-action@v1
-#          with:
-#            key-file: ./path/to/account-service-key-file.json
-#            package-name: com.trackme.android
-#            aab-file: ./app/build/outputs/bundle/release/app-release.aab
-#            track: internal
-#            release-name: ${{ github.event.inputs.name }}
+      - name: Prepare google service account key file
+        run: echo "${{ secrets.SERVICE_ACCOUNT_KEYFILE_BASE64 }}" | base64 --decode > service_account_key.json
+
+      - name: Create release on google play console
+        uses: johangus/android-release-action@v1
+          with:
+            key-file: ./service_account_key.json
+            package-name: com.trackme.android
+            aab-file: ./app/build/outputs/bundle/release/app-release.aab
+            track: internal
+            release-name: ${{ github.event.inputs.name }}
