@@ -36,9 +36,9 @@ jobs:
 
       - name: Create release on google play console
         uses: johangus/android-release-action@v1
-          with:
-            key-file: ./service_account_key.json
-            package-name: com.trackme.android
-            aab-file: ./app/build/outputs/bundle/release/app-release.aab
-            track: internal
-            release-name: ${{ github.event.inputs.name }}
+        with:
+          key-file: ./service_account_key.json
+          package-name: com.trackme.android
+          aab-file: ./app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          release-name: ${{ github.event.inputs.name }}
