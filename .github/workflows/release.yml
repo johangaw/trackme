@@ -19,25 +19,25 @@ jobs:
           java-version: 1.8
 
       - name: Prepare keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "${GITHUB_WORKSPACE}/keystore.jks"
 
       - name: Prepare keystore.properties
         run: |
           echo "keyAlias=trackme-upload" >> keystore.properties
           echo "keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}" >> keystore.properties
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
-          echo "storeFile=./keystore.jks" >> keystore.properties
+          echo "storeFile=${GITHUB_WORKSPACE}/keystore.jks" >> keystore.properties
 
       - name: Build aab
         run: ./gradlew bundleRelease
 
       - name: Prepare google service account key file
-        run: echo "${{ secrets.SERVICE_ACCOUNT_KEYFILE_BASE64 }}" | base64 --decode > service_account_key.json
+        run: echo "${{ secrets.SERVICE_ACCOUNT_KEYFILE_BASE64 }}" | base64 --decode > "${GITHUB_WORKSPACE}/service_account_key.json"
 
       - name: Create release on google play console
         uses: johangus/android-release-action@v1
         with:
-          key-file: ./service_account_key.json
+          key-file: ${{ env.GITHUB_WORKSPACE }}/service_account_key.json
           package-name: com.trackme.android
           aab-file: ./app/build/outputs/bundle/release/app-release.aab
           track: internal
