@@ -4,7 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.preferredHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,9 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Devices
-import androidx.ui.tooling.preview.Preview
 
 data class Point(val x: Float, val y: Float) {
     operator fun plus(scalar: Float): Point {
@@ -201,8 +201,7 @@ private val samplePoints = listOf(
 fun LineGraphPreview() {
     MaterialTheme {
         LineGraph(
-            modifier = Modifier.fillMaxWidth()
-                .preferredHeight(300.dp),
+            modifier = Modifier.fillMaxWidth().height(300.dp),
             data = samplePoints
         )
     }
@@ -218,7 +217,7 @@ fun LineGraphPreview_WithoutDots_WithSelectionLine() {
     MaterialTheme {
         LineGraph(
             modifier = Modifier.fillMaxWidth()
-                .preferredHeight(300.dp),
+                .height(300.dp),
             data = samplePoints,
             showPoints = false,
             SelectionLine(5f, 10f, 2f, Color.Blue)
@@ -236,7 +235,7 @@ fun LineGraphPreview_WithoutData() {
     MaterialTheme {
         LineGraph(
             modifier = Modifier.fillMaxWidth()
-                .preferredHeight(300.dp),
+                .height(300.dp),
             showPoints = true,
             data = listOf(Point(1f, 10f)),
         )

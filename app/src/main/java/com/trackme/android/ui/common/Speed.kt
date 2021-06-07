@@ -1,7 +1,7 @@
 package com.trackme.android.ui.common
 
-import androidx.compose.foundation.Text
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -16,7 +16,7 @@ fun Speed(
     style: TextStyle = MaterialTheme.typography.body1,
     modifier: Modifier = Modifier,
 ) {
-    val unit = SettingsAmbient.current.speedUnit
+    val unit = LocalSettings.current.speedUnit
     Text(text = formatSpeed(speed, unit), style = style, modifier = modifier)
 }
 

@@ -1,6 +1,7 @@
 package com.trackme.android.ui.common
 
-import androidx.compose.runtime.staticAmbientOf
+import androidx.compose.runtime.staticCompositionLocalOf
+
 
 data class Settings(
     val speedUnit: SpeedUnit = SpeedUnit.METER_PER_SECOND
@@ -13,4 +14,4 @@ enum class SpeedUnit {
     KNOTS,
 }
 
-val SettingsAmbient = staticAmbientOf { Settings() }
+val LocalSettings = staticCompositionLocalOf { Settings() }

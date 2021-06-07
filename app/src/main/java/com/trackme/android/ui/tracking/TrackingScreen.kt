@@ -1,18 +1,18 @@
 package com.trackme.android.ui.tracking
 
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Slider
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Devices
-import androidx.ui.tooling.preview.Preview
 import com.trackme.android.data.TrackEntry
 import com.trackme.android.ui.common.Altitude
 import com.trackme.android.ui.common.Distance
@@ -63,7 +63,7 @@ fun TrackingScreen(
 
         LineGraph(
             modifier = Modifier.fillMaxWidth()
-                .preferredHeight(200.dp),
+                .height(200.dp),
             data = speedPoints,
             showPoints = speedPoints.size < 10,
             selectionLine = if (!running) selection else null,
@@ -71,7 +71,7 @@ fun TrackingScreen(
         if (running) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                alignment = Alignment.Center
+                contentAlignment = Alignment.Center
             ) {
                 RoundTextButton(
                     onClick = onStopClick,
@@ -79,7 +79,7 @@ fun TrackingScreen(
                 )
             }
         } else {
-            Spacer(modifier = Modifier.preferredHeight(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -100,7 +100,7 @@ fun TrackingScreen(
             val selected = search(value.toLong() + normalizer, trackEntries)
             val rangeLower = speedPoints.minOfOrNull { it.x } ?: 0f
             val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
-            Spacer(modifier = Modifier.preferredHeight(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

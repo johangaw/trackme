@@ -1,10 +1,11 @@
 package com.trackme.android.ui.tracks
 
-import androidx.compose.foundation.Icon
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumnFor
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,9 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.ui.tooling.preview.Devices
-import androidx.ui.tooling.preview.Preview
 import com.trackme.android.ui.common.Distance
 import com.trackme.android.ui.common.Speed
 import java.time.LocalDateTime
@@ -31,7 +32,8 @@ fun TracksScreen(
     onTrackDelete: (TrackData) -> Unit,
     onNewClick: () -> Unit,
 ) {
-    val uiStates = rememberUiStateMap(tracks.map { it.id })
+    // TODO Fixme, make it possible to remove items...
+//    val uiStates = rememberUiStateMap(tracks.map { it.id })
 
     Scaffold(
         floatingActionButton = {
@@ -39,56 +41,59 @@ fun TracksScreen(
                 modifier = Modifier.semantics { text = AnnotatedString("Create new track") },
                 onClick = onNewClick
             ) {
-                Icon(Icons.Filled.Add)
+                Icon(Icons.Filled.Add, contentDescription = "")
             }
         }
     ) {
-        LazyColumnFor(items = tracks, contentPadding = it) { track ->
-            TrackRow(
-                track = track,
-                onSelect = onTrackClick,
-                onDelete = onTrackDelete,
-                uiState = uiStates[track.id]
-                    ?: error("Missing uiState for ${track.id} in $uiStates"),
-            )
+        LazyColumn(contentPadding = it) {
+
+            items(tracks) { track ->
+                TrackRow(
+                    track = track,
+                    onSelect = onTrackClick,
+                    onDelete = onTrackDelete,
+//                    uiState = uiStates[track.id]
+//                        ?: error("Missing uiState for ${track.id} in $uiStates"),
+                )
+            }
         }
     }
 }
 
-data class UiState(
-    val key: Any?,
-    val selected: MutableState<Boolean>,
-    val deleting: MutableState<Boolean>,
-)
+//data class UiState(
+//    val key: Any?,
+//    val selected: MutableState<Boolean>,
+//    val deleting: MutableState<Boolean>,
+//)
 
-@Composable
-fun rememberUiStateMap(ids: List<Any?>): Map<Any?, UiState> {
-    val uiStates = remember { mutableMapOf<Any?, UiState>() }
-    onCommit(ids) {
-        ids.forEach {
-            uiStates.putIfAbsent(it,
-                                 UiState(it,
-                                         mutableStateOf(false),
-                                         mutableStateOf(false)))
-        }
-        (uiStates.keys - ids).forEach { uiStates.remove(it) }
-    }
-    return uiStates
-}
+//@Composable
+//fun rememberUiStateMap(ids: List<Any?>): Map<Any?, UiState> {
+//    val uiStates = remember { mutableMapOf<Any?, UiState>() }
+//    onCommit(ids) {
+//        ids.forEach {
+//            uiStates.putIfAbsent(it,
+//                                 UiState(it,
+//                                         mutableStateOf(false),
+//                                         mutableStateOf(false)))
+//        }
+//        (uiStates.keys - ids).forEach { uiStates.remove(it) }
+//    }
+//    return uiStates
+//}
 
 @Composable
 fun TrackRow(
     track: TrackData,
     onSelect: (TrackData) -> Unit,
     onDelete: (TrackData) -> Unit,
-    uiState: UiState,
+//    uiState: UiState,
 ) {
     Box(
-        Modifier.fillMaxWidth().shrinkOut(!uiState.deleting.value) { onDelete(track) }
+//        Modifier.fillMaxWidth().shrinkOut(!uiState.deleting.value) { onDelete(track) }
     ) {
         Card(
             modifier = Modifier
-                .sideDraggable(maxOffset = 75f, key = uiState.key, selectedState = uiState.selected)
+//                .sideDraggable(maxOffset = 75f, key = uiState.key, selectedState = uiState.selected)
                 .padding(bottom = 16.dp),
             elevation = 4.dp
         ) {
@@ -108,19 +113,20 @@ fun TrackRow(
             }
         }
         IconButton(
-            onClick = { uiState.deleting.value = true },
+            onClick = {
+//                uiState.deleting.value = true
+              },
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .preferredWidth(75.dp)
+                .width(75.dp)
         ) {
-            Icon(Icons.Default.Delete, tint = Color.Red)
+            Icon(Icons.Default.Delete, tint = Color.Red, contentDescription = "")
         }
     }
 }
 
-
+@Preview(device = Devices.PIXEL_3, showBackground = true, showSystemUi = true)
 @Composable
-@Preview(device = Devices.PIXEL_3, showBackground = true, showDecoration = true)
 fun TracksScreenPreview() {
     val tracks: List<TrackData> = listOf(
         TrackData(1, "Track 1", LocalDateTime.now(), 13f, 3.5f),

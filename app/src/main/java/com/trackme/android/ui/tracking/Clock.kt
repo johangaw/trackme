@@ -1,10 +1,10 @@
 package com.trackme.android.ui.tracking
 
-import androidx.compose.foundation.Text
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import java.time.Duration
 import java.time.LocalDateTime
@@ -17,9 +17,10 @@ fun Clock(startTime: LocalDateTime?, modifier: Modifier = Modifier) {
     timer(startTime != null, 500) {
         text = formatTime(startTime!!, LocalDateTime.now())
     }
-    onCommit(startTime) {
-        if(startTime == null) text = DEFAULT_TEXT
-    }
+    // TODO Fixme
+//    onCommit(startTime) {
+//        if(startTime == null) text = DEFAULT_TEXT
+//    }
 
     Text(text = text, modifier = modifier, style = MaterialTheme.typography.h3)
 }
@@ -36,12 +37,12 @@ fun formatTime(start: LocalDateTime, end: LocalDateTime): String {
 
 @Composable
 fun timer(running: Boolean, delay: Long, cb: () -> Unit) {
-    launchInComposition(running) {
-        while (running) {
-            cb()
-            delay(delay)
-        }
-    }
+//    launchInComposition(running) {
+//        while (running) {
+//            cb()
+//            delay(delay)
+//        }
+//    }
 }
 
 @Composable

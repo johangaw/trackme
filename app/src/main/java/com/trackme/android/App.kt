@@ -5,11 +5,11 @@ import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.savedinstancestate.rememberSavedInstanceState
-import androidx.compose.ui.platform.ContextAmbient
-import androidx.compose.ui.viewinterop.viewModel
-import androidx.ui.tooling.preview.Devices
-import androidx.ui.tooling.preview.Preview
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trackme.android.ui.common.Navigation
 import com.trackme.android.ui.tracking.TrackingScreen
 import com.trackme.android.ui.tracking.TrackingViewModel
@@ -27,20 +27,25 @@ fun App(
     stopLocationTracking: () -> Unit,
     startOnTrack: FocusTrackRequest,
 ) {
-    val navigator: Navigation<Destination> =
-        rememberSavedInstanceState(saver = Navigation.saver(onBackPressedDispatcher)) {
-            Navigation(onBackPressedDispatcher, Destination.Tracks)
+    // TODO use navigation lib instead...
+    val navigator: Navigation<Destination> by
+        rememberSaveable(stateSaver = Navigation.saver(onBackPressedDispatcher)) {
+            mutableStateOf(
+                Navigation(onBackPressedDispatcher, Destination.Tracks)
+            )
         }
 
-    onCommit(startOnTrack) {
-        if (startOnTrack.trackId >= 0) {
-            navigator.popToTop()
-            navigator.push(Destination.Tracking(startOnTrack.trackId))
-        }
-    }
 
-    Providers(NavigationAmbient provides navigator) {
-        Crossfade(current = navigator.current) {
+    // Fixme navigate to track when started from activity
+//    onCommit(startOnTrack) {
+//        if (startOnTrack.trackId >= 0) {
+//            navigator.popToTop()
+//            navigator.push(Destination.Tracking(startOnTrack.trackId))
+//        }
+//    }
+
+    CompositionLocalProvider(NavigationAmbient provides navigator) {
+        Crossfade(targetState = navigator.current) {
             when (it) {
                 Destination.Tracks -> TracksScreenWrapper(requestLocationTracking)
                 is Destination.Tracking -> TrackingScreenWrapper(it.trackId, stopLocationTracking)
@@ -50,7 +55,7 @@ fun App(
 }
 
 @Composable
-@Preview(device = Devices.PIXEL_3, showDecoration = true, showBackground = true)
+@Preview(device = Devices.PIXEL_3, showSystemUi = true, showBackground = true)
 fun AppPreview() {
     App(OnBackPressedDispatcher(), {}, {}, FocusTrackRequest(-1))
 }
@@ -59,11 +64,13 @@ fun AppPreview() {
 fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
     val viewModel = viewModel(
         modelClass = TrackingViewModel::class.java,
-        factory = TrackingViewModelFactory(ContextAmbient.current.applicationContext)
+        factory = TrackingViewModelFactory(LocalContext.current.applicationContext)
     )
-    onCommit(trackId) {
-        viewModel.setTrackId(trackId)
-    }
+
+    // FixMe not sure what needs to be fixed...
+//    onCommit(trackId) {
+//        viewModel.setTrackId(trackId)
+//    }
 
     val totalDistance by viewModel.totalDistance.observeAsState(0f)
     val trackStartedAt by viewModel.trackStartedAt.observeAsState()
@@ -89,7 +96,7 @@ fun TracksScreenWrapper(requestLocationTracking: (cb: (newTrackId: Long) -> Unit
     val viewModel =
         viewModel(
             modelClass = TracksViewModel::class.java,
-            factory = TracksViewModelFactory(ContextAmbient.current.applicationContext)
+            factory = TracksViewModelFactory(LocalContext.current.applicationContext)
         )
     val tracks by viewModel.tracks.observeAsState()
     val navigator = NavigationAmbient.current
@@ -107,7 +114,7 @@ fun TracksScreenWrapper(requestLocationTracking: (cb: (newTrackId: Long) -> Unit
     )
 }
 
-internal val NavigationAmbient = staticAmbientOf<Navigation<Destination>> {
+internal val NavigationAmbient = staticCompositionLocalOf<Navigation<Destination>> {
     error("No navigation created")
 }
 
