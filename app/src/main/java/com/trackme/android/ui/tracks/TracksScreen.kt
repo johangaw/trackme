@@ -1,16 +1,15 @@
 package com.trackme.android.ui.tracks
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,12 +18,15 @@ import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.trackme.android.ui.common.Distance
 import com.trackme.android.ui.common.Speed
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
+@ExperimentalMaterialApi
 @Composable
 fun TracksScreen(
     tracks: List<TrackData>,
@@ -32,8 +34,6 @@ fun TracksScreen(
     onTrackDelete: (TrackData) -> Unit,
     onNewClick: () -> Unit,
 ) {
-    // TODO Fixme, make it possible to remove items...
-//    val uiStates = rememberUiStateMap(tracks.map { it.id })
 
     Scaffold(
         floatingActionButton = {
@@ -45,55 +45,49 @@ fun TracksScreen(
             }
         }
     ) {
-        LazyColumn(contentPadding = it) {
-
-            items(tracks) { track ->
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            tracks.forEach { track ->
                 TrackRow(
                     track = track,
                     onSelect = onTrackClick,
                     onDelete = onTrackDelete,
-//                    uiState = uiStates[track.id]
-//                        ?: error("Missing uiState for ${track.id} in $uiStates"),
                 )
             }
         }
     }
 }
 
-//data class UiState(
-//    val key: Any?,
-//    val selected: MutableState<Boolean>,
-//    val deleting: MutableState<Boolean>,
-//)
-
-//@Composable
-//fun rememberUiStateMap(ids: List<Any?>): Map<Any?, UiState> {
-//    val uiStates = remember { mutableMapOf<Any?, UiState>() }
-//    onCommit(ids) {
-//        ids.forEach {
-//            uiStates.putIfAbsent(it,
-//                                 UiState(it,
-//                                         mutableStateOf(false),
-//                                         mutableStateOf(false)))
-//        }
-//        (uiStates.keys - ids).forEach { uiStates.remove(it) }
-//    }
-//    return uiStates
-//}
-
+@ExperimentalMaterialApi
 @Composable
 fun TrackRow(
     track: TrackData,
     onSelect: (TrackData) -> Unit,
     onDelete: (TrackData) -> Unit,
-//    uiState: UiState,
+    swipeableState: SwipeableState<String> = rememberSwipeableState("hidden")
 ) {
+    val anchors = mapOf(0f to "hidden", 300f to "visible")
     Box(
-//        Modifier.fillMaxWidth().shrinkOut(!uiState.deleting.value) { onDelete(track) }
+        Modifier.swipeable(
+            state = swipeableState,
+            anchors = anchors,
+            thresholds = { _, _ -> FractionalThreshold(0.5f) },
+            orientation = Orientation.Horizontal,
+            resistance = ResistanceConfig(300f, 2f, 2f)
+        )
     ) {
+        IconButton(
+            onClick = {
+                onDelete(track)
+            },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .width(75.dp)
+        ) {
+            Icon(Icons.Default.Delete, tint = Color.Red, contentDescription = "")
+        }
         Card(
             modifier = Modifier
-//                .sideDraggable(maxOffset = 75f, key = uiState.key, selectedState = uiState.selected)
+                .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
                 .padding(bottom = 16.dp),
             elevation = 4.dp
         ) {
@@ -112,19 +106,10 @@ fun TrackRow(
                 Speed(track.averageSpeed, style = MaterialTheme.typography.h6)
             }
         }
-        IconButton(
-            onClick = {
-//                uiState.deleting.value = true
-              },
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .width(75.dp)
-        ) {
-            Icon(Icons.Default.Delete, tint = Color.Red, contentDescription = "")
-        }
     }
 }
 
+@ExperimentalMaterialApi
 @Preview(device = Devices.PIXEL_3, showBackground = true, showSystemUi = true)
 @Composable
 fun TracksScreenPreview() {

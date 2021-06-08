@@ -3,6 +3,7 @@ package com.trackme.android
 import android.os.Parcelable
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.animation.Crossfade
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,6 +21,7 @@ import com.trackme.android.ui.tracks.TracksViewModelFactory
 import kotlinx.android.parcel.Parcelize
 import java.time.LocalDateTime
 
+@ExperimentalMaterialApi
 @Composable
 fun App(
     onBackPressedDispatcher: OnBackPressedDispatcher,
@@ -54,6 +56,7 @@ fun App(
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
 @Preview(device = Devices.PIXEL_3, showSystemUi = true, showBackground = true)
 fun AppPreview() {
@@ -91,6 +94,7 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
     )
 }
 
+@ExperimentalMaterialApi
 @Composable
 fun TracksScreenWrapper(requestLocationTracking: (cb: (newTrackId: Long) -> Unit) -> Unit) {
     val viewModel =
