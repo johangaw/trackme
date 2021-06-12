@@ -70,10 +70,10 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
         factory = TrackingViewModelFactory(LocalContext.current.applicationContext)
     )
 
-    // FixMe not sure what needs to be fixed...
-//    onCommit(trackId) {
-//        viewModel.setTrackId(trackId)
-//    }
+    // TODO move to main router and attach to route parameters...
+    LaunchedEffect(trackId) {
+        viewModel.setTrackId(trackId)
+    }
 
     val totalDistance by viewModel.totalDistance.observeAsState(0f)
     val trackStartedAt by viewModel.trackStartedAt.observeAsState()
