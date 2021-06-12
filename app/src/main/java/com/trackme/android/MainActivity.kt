@@ -19,7 +19,9 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
-    private val viewModel: MainActivityViewModel by viewModels { MainActivityViewModelFactory(application) }
+    private val viewModel: MainActivityViewModel by viewModels {
+        MainActivityViewModelFactory(application)
+    }
 
     private val hasLocationPermission: Boolean
         get() {
@@ -27,6 +29,14 @@ class MainActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
+        }
+
+
+    private val requestLocationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                requestLocationTracking()
+            }
         }
 
     @ExperimentalMaterialApi
@@ -48,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         val newFocusedTrack = intent?.getLongExtra(EXTRA_TRACK_ID, -1) ?: -1
-        if(newFocusedTrack >= 0)
+        if (newFocusedTrack >= 0)
             viewModel.focusTrack(newFocusedTrack)
     }
 
@@ -56,14 +66,14 @@ class MainActivity : AppCompatActivity() {
         stopService(Intent(this, LocationTrackerService::class.java))
     }
 
-    private fun requestLocationTracking(cb: (newTrackId: Long) -> Unit) {
+    private fun requestLocationTracking() {
         if (!hasLocationPermission) {
-            requestLocationPermission(cb)
+            requestLocationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         } else {
             lifecycleScope.launch {
                 val newTrack = viewModel.newTrack()
                 startLocationTracking(newTrack.id)
-                cb(newTrack.id)
+                // TODO trigger deep link navigation to track
             }
         }
     }
@@ -72,18 +82,6 @@ class MainActivity : AppCompatActivity() {
         val serviceIntent = Intent(this@MainActivity, LocationTrackerService::class.java)
         serviceIntent.putExtra(LocationTrackerService.EXTRA_TRACK_ID, trackId)
         startForegroundService(serviceIntent)
-    }
-
-    private fun requestLocationPermission(cb: (newTrackId: Long) -> Unit) {
-        getPermissionRequest(cb).launch(Manifest.permission.ACCESS_FINE_LOCATION)
-    }
-
-    private fun getPermissionRequest(cb: (newTrackId: Long) -> Unit): ActivityResultLauncher<String> {
-        return registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                requestLocationTracking(cb)
-            }
-        }
     }
 
     companion object {

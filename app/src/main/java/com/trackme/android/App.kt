@@ -25,7 +25,7 @@ import java.time.LocalDateTime
 @Composable
 fun App(
     onBackPressedDispatcher: OnBackPressedDispatcher,
-    requestLocationTracking: (cb: (newTrackId: Long) -> Unit) -> Unit,
+    requestLocationTracking: () -> Unit,
     stopLocationTracking: () -> Unit,
     startOnTrack: FocusTrackRequest,
 ) {
@@ -96,7 +96,7 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun TracksScreenWrapper(requestLocationTracking: (cb: (newTrackId: Long) -> Unit) -> Unit) {
+fun TracksScreenWrapper(requestLocationTracking: () -> Unit) {
     val viewModel =
         viewModel(
             modelClass = TracksViewModel::class.java,
@@ -111,9 +111,7 @@ fun TracksScreenWrapper(requestLocationTracking: (cb: (newTrackId: Long) -> Unit
             viewModel.removeTrack(track.id)
         },
         onNewClick = {
-            requestLocationTracking { newTrackId: Long ->
-                navigator.push(Destination.Tracking(newTrackId))
-            }
+            requestLocationTracking()
         }
     )
 }
