@@ -17,10 +17,9 @@ fun Clock(startTime: LocalDateTime?, modifier: Modifier = Modifier) {
     timer(startTime != null, 500) {
         text = formatTime(startTime!!, LocalDateTime.now())
     }
-    // TODO Fixme
-//    onCommit(startTime) {
-//        if(startTime == null) text = DEFAULT_TEXT
-//    }
+    LaunchedEffect(startTime) {
+        if(startTime == null) text = DEFAULT_TEXT
+    }
 
     Text(text = text, modifier = modifier, style = MaterialTheme.typography.h3)
 }
@@ -30,19 +29,26 @@ fun formatTime(start: LocalDateTime, end: LocalDateTime): String {
     val hours = timeSince / 3600
     val minutes = (timeSince - (hours * 3600)) / 60
     val seconds = timeSince - hours * 3600 - minutes * 60
-    return "${hours.toString().padStart(2, '0')}:${
-        minutes.toString().padStart(2, '0')
-    }:${seconds.toString().padStart(2, '0')}"
+    return "${
+        hours.toString()
+            .padStart(2, '0')
+    }:${
+        minutes.toString()
+            .padStart(2, '0')
+    }:${
+        seconds.toString()
+            .padStart(2, '0')
+    }"
 }
 
 @Composable
 fun timer(running: Boolean, delay: Long, cb: () -> Unit) {
-//    launchInComposition(running) {
-//        while (running) {
-//            cb()
-//            delay(delay)
-//        }
-//    }
+    LaunchedEffect(running) {
+        while (running) {
+            cb()
+            delay(delay)
+        }
+    }
 }
 
 @Composable
