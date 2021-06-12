@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val startTrackOn by viewModel.focusTrackRequests.observeAsState(FocusTrackRequest(-1))
             App(
-                onBackPressedDispatcher,
                 this::requestLocationTracking,
                 this::stopLocationTracking,
                 startTrackOn
