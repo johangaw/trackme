@@ -1,5 +1,6 @@
 package com.trackme.android.ui.tracks
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,18 +75,22 @@ fun TrackRow(
     swipeableState: SwipeableState<String> = rememberSwipeableState("hidden"),
 ) {
     val anchors = mapOf(0f to "hidden", 300f to "visible")
+    var deleted by remember { mutableStateOf(false) }
+
     Box(
-        Modifier.swipeable(
-            state = swipeableState,
-            anchors = anchors,
-            thresholds = { _, _ -> FractionalThreshold(0.5f) },
-            orientation = Orientation.Horizontal,
-            resistance = ResistanceConfig(300f, 2f, 2f)
-        )
+        Modifier
+            .shrinkOut(!deleted, onEnd = { onDelete(track) })
+            .swipeable(
+                state = swipeableState,
+                anchors = anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.5f) },
+                orientation = Orientation.Horizontal,
+                resistance = ResistanceConfig(300f, 2f, 2f)
+            )
     ) {
         IconButton(
             onClick = {
-                onDelete(track)
+                deleted = true
             },
             modifier = Modifier
                 .align(Alignment.CenterStart)
