@@ -17,14 +17,14 @@ jobs:
 #      - name: run instrumental tests
 #        run: ./gradlew connectedAndroidTest
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: set up JDK 11
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-      - name: build aab
-        run: ./gradlew bundleRelease
+#  build:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: set up JDK 11
+#        uses: actions/setup-java@v2
+#        with:
+#          java-version: '11'
+#          distribution: 'adopt'
+#      - name: build aab
+#        run: ./gradlew bundleRelease
