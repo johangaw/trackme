@@ -57,7 +57,7 @@ interface TrackDao {
     @Query("SELECT * FROM track")
     fun getAllAndObserve(): LiveData<List<Track>>
 
-    @Query("SELECT * FROM track")
+    @Query("SELECT * FROM track ORDER BY id DESC")
     fun getAllWithTracksAndObserve(): LiveData<List<TrackWithEntries>>
 
     @Query("SELECT * FROM track WHERE id = :id")
