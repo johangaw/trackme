@@ -50,7 +50,7 @@ fun TracksScreen(
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "")
             }
-        }
+        },
     ) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             tracks.forEach { track ->
@@ -63,6 +63,9 @@ fun TracksScreen(
 
                 }
             }
+
+            // Add some space for FAB to appear under the last row
+            Spacer(modifier = Modifier.height(75.dp))
         }
     }
 }
