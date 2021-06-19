@@ -14,6 +14,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
+import com.trackme.android.data.Route
 import com.trackme.android.ui.tracking.TrackingScreen
 import com.trackme.android.ui.tracking.TrackingViewModel
 import com.trackme.android.ui.tracking.TrackingViewModelFactory
@@ -23,45 +25,33 @@ import com.trackme.android.ui.tracks.TracksViewModel
 import com.trackme.android.ui.tracks.TracksViewModelFactory
 import java.time.LocalDateTime
 
-
 @ExperimentalMaterialApi
 @Composable
 fun App(
-    requestLocationTracking: () -> Unit,
+    requestLocationTracking: (onTrackingStarted: (newTrackId: Long) -> Unit) -> Unit,
     stopLocationTracking: () -> Unit,
-    startOnTrack: FocusTrackRequest,
 ) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "tracks") {
-        composable("tracks") {
-            TracksScreenWrapper(requestLocationTracking, { track -> navController.navigate("tracking/${track.id}")})
+    NavHost(navController = navController, startDestination = Route.TrackList.route) {
+        composable(Route.TrackList.route) {
+            TracksScreenWrapper(requestLocationTracking, { trackId -> navController.navigate(Route.TrackDetails.createLink(trackId))})
         }
 
-        composable("tracking/{trackId}",
-                   arguments = listOf(navArgument("trackId") { type = NavType.LongType })
+        composable(Route.TrackDetails.route,
+                   arguments = listOf(navArgument(Route.TrackDetails.trackIdParam) { type = NavType.LongType }),
+                   deepLinks = listOf(navDeepLink { uriPattern = Route.TrackDetails.deepLinkRoute })
         ) {
-            TrackingScreenWrapper(trackId = it.arguments?.getLong("trackId")!!,
+            TrackingScreenWrapper(trackId = it.arguments?.getLong(Route.TrackDetails.trackIdParam)!!,
                                   stopLocationTracking)
         }
     }
-
-
-
-    // Fixme navigate to track when started from activity
-//    onCommit(startOnTrack) {
-//        if (startOnTrack.trackId >= 0) {
-//            navigator.popToTop()
-//            navigator.push(Destination.Tracking(startOnTrack.trackId))
-//        }
-//    }
-
 }
 
 @ExperimentalMaterialApi
 @Composable
 @Preview(device = Devices.PIXEL_3, showSystemUi = true, showBackground = true)
 fun AppPreview() {
-    App({}, {}, FocusTrackRequest(-1))
+    App({}, {})
 }
 
 @Composable
@@ -96,7 +86,7 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun TracksScreenWrapper(requestLocationTracking: () -> Unit, navigateToTrack: (track: TrackData) -> Unit) {
+fun TracksScreenWrapper(requestLocationTracking: (onTrackingStarted: (newTrackId: Long) -> Unit) -> Unit, navigateToTrack: (trackId: Long) -> Unit) {
     val viewModel =
         viewModel(
             modelClass = TracksViewModel::class.java,
@@ -105,12 +95,12 @@ fun TracksScreenWrapper(requestLocationTracking: () -> Unit, navigateToTrack: (t
     val tracks by viewModel.tracks.observeAsState()
     TracksScreen(
         tracks = tracks ?: emptyList(),
-        onTrackClick = navigateToTrack,
+        onTrackClick = { trackData -> navigateToTrack(trackData.id) },
         onTrackDelete = { track ->
             viewModel.removeTrack(track.id)
         },
         onNewClick = {
-            requestLocationTracking()
+            requestLocationTracking { navigateToTrack(it) }
         }
     )
 }

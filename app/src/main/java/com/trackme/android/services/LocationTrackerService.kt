@@ -7,12 +7,14 @@ import android.content.Intent
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.trackme.android.MainActivity
 import com.trackme.android.R
 import com.trackme.android.data.AppDatabase
 import com.trackme.android.data.TrackActivity
 import com.trackme.android.data.asTrackEntry
 import com.google.android.gms.location.*
+import com.trackme.android.data.Route
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -78,11 +80,12 @@ class LocationTrackerService : Service() {
     }
 
     private fun createLocationRequest(): LocationRequest? {
-        return LocationRequest.create()?.apply {
-            interval = 2_000
-            fastestInterval = 1_000
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
+        return LocationRequest.create()
+            ?.apply {
+                interval = 2_000
+                fastestInterval = 1_000
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            }
     }
 
     private fun showTrackingNotification() {
@@ -110,22 +113,28 @@ class LocationTrackerService : Service() {
     }
 
     private fun createShowProgressIntent(): PendingIntent {
-        val showProgress = Intent(this, MainActivity::class.java)
-        showProgress.putExtra(MainActivity.EXTRA_TRACK_ID, trackId)
-        return PendingIntent.getActivity(this,
-                                         0,
-                                         showProgress,
-                                         PendingIntent.FLAG_UPDATE_CURRENT,
+        val showTrackIntent = Intent(
+            Intent.ACTION_VIEW,
+            Route.TrackDetails.createDeepLink(trackId).toUri(),
+            applicationContext,
+            MainActivity::class.java
         )
+
+        return TaskStackBuilder.create(applicationContext). run {
+            addNextIntentWithParentStack(showTrackIntent)
+            getPendingIntent(SHOW_TRACK_INTENT_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT)
+        }
     }
 
     private fun toggleTrackActivity(trackId: Long, newValue: Boolean) {
         GlobalScope.launch {
-            appDatabase.trackDao().updateActivity(TrackActivity(trackId, newValue))
+            appDatabase.trackDao()
+                .updateActivity(TrackActivity(trackId, newValue))
         }
     }
 
     companion object {
+        const val SHOW_TRACK_INTENT_REQUEST_CODE = 0
         const val EXTRA_TRACK_ID = "com.example.trackme.TRACK_ID_EXTRA"
         const val CHANNEL_ID = "LocationTrackerServiceChannel"
         const val CHANNEL_NAME = "LocationTrackerServiceChannel"
