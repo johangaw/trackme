@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.trackme.android.ui.common.Distance
 import com.trackme.android.ui.common.Speed
+import swipeToReveal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
@@ -74,19 +75,11 @@ fun TrackRow(
     onDelete: (TrackData) -> Unit,
     swipeableState: SwipeableState<String> = rememberSwipeableState("hidden"),
 ) {
-    val anchors = mapOf(0f to "hidden", 300f to "visible")
     var deleted by remember { mutableStateOf(false) }
-
     Box(
         Modifier
             .shrinkOut(!deleted, onEnd = { onDelete(track) })
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.5f) },
-                orientation = Orientation.Horizontal,
-                resistance = ResistanceConfig(300f, 2f, 2f)
-            )
+            .swipeToReveal(swipeableState)
     ) {
         IconButton(
             onClick = {
