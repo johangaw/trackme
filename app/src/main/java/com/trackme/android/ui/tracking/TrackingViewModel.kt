@@ -2,10 +2,7 @@ package com.trackme.android.ui.tracking
 
 import android.content.Context
 import androidx.lifecycle.*
-import com.trackme.android.data.AppDatabase
-import com.trackme.android.data.Track
-import com.trackme.android.data.TrackEntry
-import com.trackme.android.data.totalDistance
+import com.trackme.android.data.*
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -28,6 +25,11 @@ class TrackingViewModel(
 
     val totalDistance: LiveData<Float> = activeTrackEntries.map {
         it?.let { totalDistance(it) } ?: 0f
+    }
+
+    val averageSpeed: LiveData<Float> = activeTrackEntries.map {
+        val totalDistance = totalDistance(it)
+        averageSpeed(it, totalDistance)
     }
 
     val activeTrack: LiveData<Track> = _trackId.switchMap {

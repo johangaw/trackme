@@ -25,8 +25,8 @@ import kotlin.math.abs
 fun TrackingScreen(
     onStopClick: () -> Unit,
     startedAt: LocalDateTime?,
-    totalLength: Float,
-    currentSpeed: Float,
+    totalDistance: Float,
+    averageSpeed: Float,
     trackEntries: List<TrackEntry>,
 ) {
     val running = startedAt != null
@@ -45,8 +45,8 @@ fun TrackingScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Distance(totalLength, style = MaterialTheme.typography.h3)
-            Speed(currentSpeed, style = MaterialTheme.typography.h3)
+            Distance(totalDistance, style = MaterialTheme.typography.h3)
+            Speed(averageSpeed, style = MaterialTheme.typography.h3)
         }
 
         var graphType: GraphType by remember { mutableStateOf(GraphType.SPEED) }
@@ -154,8 +154,8 @@ fun TrackingScreenPreview() {
         TrackingScreen(
             onStopClick = {},
             startedAt = trackStartedAt,
-            totalLength = 1337F,
-            currentSpeed = 3.67F,
+            totalDistance = 1337F,
+            averageSpeed = 3.67F,
             trackEntries = trackEntries,
         )
     }
@@ -172,8 +172,8 @@ fun NotTrackingScreenPreview() {
         TrackingScreen(
             onStopClick = {},
             startedAt = null,
-            totalLength = 0F,
-            currentSpeed = 0.0F,
+            totalDistance = 0F,
+            averageSpeed = 0.0F,
             trackEntries = trackEntries
         )
     }

@@ -3,6 +3,7 @@ package com.trackme.android.ui.tracks
 import android.content.Context
 import androidx.lifecycle.*
 import com.trackme.android.data.AppDatabase
+import com.trackme.android.data.averageSpeed
 import com.trackme.android.data.totalDistance
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -15,9 +16,7 @@ class TracksViewModel(private val database: AppDatabase) : ViewModel() {
                 val startTime = it.entries.firstOrNull()
                     ?.let { LocalDateTime.ofEpochSecond(it.time / 1000, 0, ZoneOffset.UTC) }
                 val totalDistance = totalDistance(it.entries)
-                val averageSpeed = it.entries.let { entries ->
-                    if (entries.size > 1) totalDistance / (entries.last().time - entries.first().time) * 1000f else 0f
-                }
+                val averageSpeed = averageSpeed(it.entries, totalDistance)
                 TrackData(
                     it.track.id,
                     it.track.name,

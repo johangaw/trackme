@@ -19,7 +19,6 @@ import com.trackme.android.data.Route
 import com.trackme.android.ui.tracking.TrackingScreen
 import com.trackme.android.ui.tracking.TrackingViewModel
 import com.trackme.android.ui.tracking.TrackingViewModelFactory
-import com.trackme.android.ui.tracks.TrackData
 import com.trackme.android.ui.tracks.TracksScreen
 import com.trackme.android.ui.tracks.TracksViewModel
 import com.trackme.android.ui.tracks.TracksViewModelFactory
@@ -66,6 +65,7 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
     }
 
     val totalDistance by viewModel.totalDistance.observeAsState(0f)
+    val averageSpeed by viewModel.averageSpeed.observeAsState(0f)
     val trackStartedAt by viewModel.trackStartedAt.observeAsState()
     val activeTrack by viewModel.activeTrack.observeAsState()
     val trackEntries by viewModel.activeTrackEntries.observeAsState(emptyList())
@@ -78,8 +78,8 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
     TrackingScreen(
         onStopClick = stopLocationTracking,
         startedAt = startedAt,
-        totalLength = totalDistance,
-        currentSpeed = 0f,
+        totalDistance = totalDistance,
+        averageSpeed = averageSpeed,
         trackEntries = trackEntries,
     )
 }
