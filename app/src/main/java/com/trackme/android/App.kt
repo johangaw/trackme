@@ -16,6 +16,8 @@ import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.trackme.android.data.Route
+import com.trackme.android.ui.common.map.MapViewContainer
+import com.trackme.android.ui.common.map.rememberMapViewWithLifecycle
 import com.trackme.android.ui.tracking.TrackingScreen
 import com.trackme.android.ui.tracking.TrackingViewModel
 import com.trackme.android.ui.tracking.TrackingViewModelFactory
@@ -33,11 +35,16 @@ fun App(
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Route.TrackList.route) {
         composable(Route.TrackList.route) {
-            TracksScreenWrapper(requestLocationTracking, { trackId -> navController.navigate(Route.TrackDetails.createLink(trackId))})
+            TracksScreenWrapper(requestLocationTracking,
+                                { trackId ->
+                                    navController.navigate(Route.TrackDetails.createLink(trackId))
+                                })
         }
 
         composable(Route.TrackDetails.route,
-                   arguments = listOf(navArgument(Route.TrackDetails.trackIdParam) { type = NavType.LongType }),
+                   arguments = listOf(navArgument(Route.TrackDetails.trackIdParam) {
+                       type = NavType.LongType
+                   }),
                    deepLinks = listOf(navDeepLink { uriPattern = Route.TrackDetails.deepLinkRoute })
         ) {
             TrackingScreenWrapper(trackId = it.arguments?.getLong(Route.TrackDetails.trackIdParam)!!,
@@ -86,7 +93,10 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun TracksScreenWrapper(requestLocationTracking: (onTrackingStarted: (newTrackId: Long) -> Unit) -> Unit, navigateToTrack: (trackId: Long) -> Unit) {
+fun TracksScreenWrapper(
+    requestLocationTracking: (onTrackingStarted: (newTrackId: Long) -> Unit) -> Unit,
+    navigateToTrack: (trackId: Long) -> Unit,
+) {
     val viewModel =
         viewModel(
             modelClass = TracksViewModel::class.java,

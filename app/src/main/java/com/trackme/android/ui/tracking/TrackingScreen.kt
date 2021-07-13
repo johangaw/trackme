@@ -1,15 +1,11 @@
 package com.trackme.android.ui.tracking
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.RadioButton
 import androidx.compose.material.Slider
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -17,6 +13,9 @@ import com.trackme.android.data.TrackEntry
 import com.trackme.android.ui.common.Altitude
 import com.trackme.android.ui.common.Distance
 import com.trackme.android.ui.common.Speed
+import com.trackme.android.ui.common.ToggleButton
+import com.trackme.android.ui.common.map.MapViewContainer
+import com.trackme.android.ui.common.map.rememberMapViewWithLifecycle
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import kotlin.math.abs
@@ -45,8 +44,8 @@ fun TrackingScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Distance(totalDistance, style = MaterialTheme.typography.h3)
-            Speed(averageSpeed, style = MaterialTheme.typography.h3)
+            Distance(totalDistance, style = MaterialTheme.typography.h4)
+            Speed(averageSpeed, style = MaterialTheme.typography.h4)
         }
 
         var graphType: GraphType by remember { mutableStateOf(GraphType.SPEED) }
@@ -59,11 +58,12 @@ fun TrackingScreen(
                 }
             }
         val (value, setValue) = remember { mutableStateOf(speedPoints.firstOrNull()?.x ?: 0f) }
-        val selection = SelectionLine(value, null, 4f, Color.Yellow)
+        val selection = SelectionLine(value, null, 4f, MaterialTheme.colors.secondary)
 
         LineGraph(
-            modifier = Modifier.fillMaxWidth()
-                .height(200.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp),
             data = speedPoints,
             showPoints = speedPoints.size < 10,
             selectionLine = if (!running) selection else null,
@@ -80,35 +80,40 @@ fun TrackingScreen(
             }
         } else {
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                LabeledRadioButton(
-                    graphType == GraphType.SPEED,
-                    { graphType = GraphType.SPEED },
-                    "Speed"
-                )
 
-                LabeledRadioButton(
-                    graphType == GraphType.ALTITUDE,
-                    { graphType = GraphType.ALTITUDE },
-                    "Altitude"
-                )
-            }
+            val map = rememberMapViewWithLifecycle()
+            val current = speedPoints.indexOf(speedPoints.reduceOrNull { left, right ->
+                if (abs(left.x - value) < abs(right.x - value)) left else right
+            })
+                .let {
+                    if (it > -1)
+                        trackEntries[it]
+                    else null
+                }
+            MapViewContainer(map = map,
+                             track = trackEntries,
+                             current = current,
+                             modifier = Modifier
+                                 .fillMaxWidth()
+                                 .height(200.dp))
 
+
+            Spacer(modifier = Modifier.height(16.dp))
             val selected = search(value.toLong() + normalizer, trackEntries)
-            val rangeLower = speedPoints.minOfOrNull { it.x } ?: 0f
-            val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
-            Spacer(modifier = Modifier.height(32.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h3)
-                Altitude(selected?.altitude ?: -1.0, style = MaterialTheme.typography.h3)
+                ToggleButton(checked = graphType == GraphType.SPEED, onCheckedChange = { graphType = GraphType.SPEED }) {
+                    Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h4)
+                }
+                ToggleButton(checked = graphType == GraphType.ALTITUDE, onCheckedChange = { graphType = GraphType.ALTITUDE }) {
+                    Altitude(selected?.altitude ?: -1.0, style = MaterialTheme.typography.h4)
+                }
             }
+
+            val rangeLower = speedPoints.minOfOrNull { it.x } ?: 0f
+            val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
             Slider(
                 value = value,
                 onValueChange = setValue,
@@ -116,18 +121,6 @@ fun TrackingScreen(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun LabeledRadioButton(selected: Boolean, onClick: () -> Unit, label: String) {
-    Row(Modifier.clickable(onClick = onClick)) {
-        RadioButton(
-            onClick = { },
-            selected = selected,
-            modifier = Modifier.padding(end = 8.dp)
-        )
-        Text(text = label)
     }
 }
 

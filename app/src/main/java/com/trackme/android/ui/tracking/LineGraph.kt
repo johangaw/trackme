@@ -61,12 +61,11 @@ fun LineGraph(
     showPoints: Boolean = true,
     selectionLine: SelectionLine? = null,
 ) {
+    val color = MaterialTheme.colors.primary
     Canvas(modifier = modifier.background(Color.White)) {
         val drawingContext = getDrawingContext(this, data)
 
         drawOriginLines(drawingContext)
-
-        val color = Color.Red
         if (data.isNotEmpty()) drawLine(drawingContext, data, Color.LightGray)
         if (data.isNotEmpty()) drawBezierLine(drawingContext, data, color)
         if (showPoints && data.isNotEmpty()) drawPoints(drawingContext, data, color)
