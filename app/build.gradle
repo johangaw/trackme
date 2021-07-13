@@ -3,9 +3,6 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-kapt'
     id 'kotlin-android-extensions'
-
-    // TODO remove this!
-    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
 
 def room_version = "2.3.0"
@@ -66,6 +63,9 @@ if(keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def secretProperties = new Properties()
+secretProperties.load(new FileInputStream(rootProject.file('secrets.properties')))
+
 android {
     signingConfigs {
         release {
@@ -86,6 +86,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders = [MAPS_API_KEY:secretProperties.getProperty("MAPS_API_KEY")]
     }
 
     buildTypes {
@@ -118,9 +120,9 @@ android {
     }
 
     // Handle API secrets
-    secrets {
-        propertiesFileName 'secrets.properties'
-    }
+    //secrets {
+    //    propertiesFileName 'secrets.properties'
+    //}
 }
 
 //tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
