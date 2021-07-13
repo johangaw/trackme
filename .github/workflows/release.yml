@@ -29,6 +29,10 @@ jobs:
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
           echo "storeFile=${GITHUB_WORKSPACE}/keystore.jks" >> keystore.properties
 
+      - name: Prepare secrets.properties
+        run: |
+          echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> secrets.properties
+
       - name: Build aab
         run: ./gradlew bundleRelease
 
