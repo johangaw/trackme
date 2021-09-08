@@ -49,7 +49,7 @@ dependencies {
     implementation "androidx.compose.material:material-icons-core:$compose_version"        // Material design icons
     implementation "androidx.compose.material:material-icons-extended:$compose_version"    // Material design icons
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version" // Integration with observables
-    androidTestImplementation "androidx.ui:ui-test:$compose_version" // UI Tests
+    //androidTestImplementation "androidx.ui:ui-test:$compose_version" // UI Tests
 
 //    testImplementation 'junit:junit:4.+'
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.1'

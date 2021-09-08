@@ -27,17 +27,19 @@ fun TrackingScreen(
     totalDistance: Float,
     averageSpeed: Float,
     trackEntries: List<TrackEntry>,
+    selectedTrackEntries:  List<TrackEntry>,
+    onSelectTrackRange: (range: IntRange) -> Unit
 ) {
     val running = startedAt != null
 
     Column(Modifier.fillMaxSize()) {
         if (running) {
             Clock(startedAt, Modifier.align(Alignment.CenterHorizontally))
-        } else if (trackEntries.isNotEmpty()) {
+        } else if (selectedTrackEntries.isNotEmpty()) {
             val start =
-                LocalDateTime.ofEpochSecond(trackEntries.first().time / 1000, 0, ZoneOffset.UTC)
+                LocalDateTime.ofEpochSecond(selectedTrackEntries.first().time / 1000, 0, ZoneOffset.UTC)
             val end =
-                LocalDateTime.ofEpochSecond(trackEntries.last().time / 1000, 0, ZoneOffset.UTC)
+                LocalDateTime.ofEpochSecond(selectedTrackEntries.last().time / 1000, 0, ZoneOffset.UTC)
             StaticClock(start, end, Modifier.align(Alignment.CenterHorizontally))
         }
         Row(
@@ -67,6 +69,7 @@ fun TrackingScreen(
             data = speedPoints,
             showPoints = speedPoints.size < 10,
             selectionLine = if (!running) selection else null,
+            onSelectedRangeChange = onSelectTrackRange
         )
         if (running) {
             Box(
@@ -91,11 +94,13 @@ fun TrackingScreen(
                     else null
                 }
             MapViewContainer(map = map,
-                             track = trackEntries,
+                             track = selectedTrackEntries,
                              current = current,
                              modifier = Modifier
                                  .fillMaxWidth()
-                                 .height(200.dp))
+                                 .height(200.dp),
+                             viewportTrack = trackEntries
+            )
 
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -104,10 +109,12 @@ fun TrackingScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                ToggleButton(checked = graphType == GraphType.SPEED, onCheckedChange = { graphType = GraphType.SPEED }) {
+                ToggleButton(checked = graphType == GraphType.SPEED,
+                             onCheckedChange = { graphType = GraphType.SPEED }) {
                     Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h4)
                 }
-                ToggleButton(checked = graphType == GraphType.ALTITUDE, onCheckedChange = { graphType = GraphType.ALTITUDE }) {
+                ToggleButton(checked = graphType == GraphType.ALTITUDE,
+                             onCheckedChange = { graphType = GraphType.ALTITUDE }) {
                     Altitude(selected?.altitude ?: -1.0, style = MaterialTheme.typography.h4)
                 }
             }
@@ -150,6 +157,8 @@ fun TrackingScreenPreview() {
             totalDistance = 1337F,
             averageSpeed = 3.67F,
             trackEntries = trackEntries,
+            selectedTrackEntries = trackEntries,
+            onSelectTrackRange = {}
         )
     }
 }
@@ -167,7 +176,9 @@ fun NotTrackingScreenPreview() {
             startedAt = null,
             totalDistance = 0F,
             averageSpeed = 0.0F,
-            trackEntries = trackEntries
+            trackEntries = trackEntries,
+            selectedTrackEntries = trackEntries,
+            onSelectTrackRange = {}
         )
     }
 }

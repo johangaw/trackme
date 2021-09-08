@@ -71,11 +71,12 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
         viewModel.setTrackId(trackId)
     }
 
-    val totalDistance by viewModel.totalDistance.observeAsState(0f)
-    val averageSpeed by viewModel.averageSpeed.observeAsState(0f)
-    val trackStartedAt by viewModel.trackStartedAt.observeAsState()
+    val totalDistance by viewModel.selectedRangeTotalDistance.observeAsState(0f)
+    val averageSpeed by viewModel.selectedRangeAverageSpeed.observeAsState(0f)
+    val trackStartedAt by viewModel.selectedRangeStartedAt.observeAsState()
     val activeTrack by viewModel.activeTrack.observeAsState()
     val trackEntries by viewModel.activeTrackEntries.observeAsState(emptyList())
+    val selectedTrackEntries by viewModel.selectedTrackEntries.observeAsState(emptyList())
 
     val startedAt = activeTrack?.let { track ->
         if (track.active) trackStartedAt ?: LocalDateTime.now()
@@ -88,6 +89,8 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
         totalDistance = totalDistance,
         averageSpeed = averageSpeed,
         trackEntries = trackEntries,
+        selectedTrackEntries = selectedTrackEntries,
+        onSelectTrackRange = viewModel::setSelectedRange
     )
 }
 

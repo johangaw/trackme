@@ -3,19 +3,23 @@ package com.trackme.android.ui.tracking
 import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlin.math.absoluteValue
 
 data class Point(val x: Float, val y: Float) {
     operator fun plus(scalar: Float): Point {
@@ -60,9 +64,71 @@ fun LineGraph(
     data: List<Point>,
     showPoints: Boolean = true,
     selectionLine: SelectionLine? = null,
+    onSelectedRangeChange: ((range: IntRange) -> Unit)? = null,
 ) {
     val color = MaterialTheme.colors.primary
-    Canvas(modifier = modifier.background(Color.White)) {
+    var canvasWidth by remember { mutableStateOf(1f) }
+    var canvasHeight by remember { mutableStateOf(1f) }
+    var selectionWidth by remember { mutableStateOf(canvasWidth) }
+    var offset by remember { mutableStateOf(canvasWidth / 2) }
+
+    val graphData = remember(data, canvasWidth, canvasHeight) {
+        val noLines = data.size < 2
+
+        val xMin = data.minOfOrNull { it.x } ?: 0f
+        val yMin = (data.minOfOrNull { it.y } ?: 0f).coerceAtMost(0f)
+        val xMax = if (noLines) xMin + 1f else data.maxOf { it.x }
+        val yMax = if (noLines) yMin + 1f else data.maxOf { it.y }
+
+        val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, canvasWidth)
+        val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, canvasHeight, 0f)
+
+        data.map { Triple(xInter.interpolate(it.x), yInter.interpolate(it.y), it) }
+    }
+
+    Canvas(modifier = modifier
+        .background(Color.White)
+            // TODO breakout onGloballyPositioned & pointerInput to separate modifier
+        .onGloballyPositioned {
+            val newCanvasWidth = it.size.width.toFloat()
+            val interpolator = Interpolation(0f, canvasWidth, 0f, newCanvasWidth)
+            canvasWidth = newCanvasWidth
+            canvasHeight = it.size.width.toFloat()
+            selectionWidth = interpolator.interpolate(selectionWidth)
+            offset = interpolator.interpolate(offset)
+        }
+        .pointerInput(graphData) {
+            detectTransformGestures(
+                onGesture = { _, panGesture, zoomGesture, _ ->
+                    val newSelectionWidth = (zoomGesture * selectionWidth).coerceIn(0f, canvasWidth)
+                    val selectionRightEdge =
+                        (offset + newSelectionWidth / 2f).coerceAtMost(canvasWidth)
+                    val selectionLeftEdge = (offset - newSelectionWidth / 2f).coerceAtLeast(0f)
+                    selectionWidth = (selectionRightEdge - selectionLeftEdge).absoluteValue
+
+                    val newOffset = (offset + panGesture.x).coerceIn(selectionWidth / 2,
+                                                                     canvasWidth - selectionWidth / 2)
+
+                    // TODO see if this can be refactored
+                    offset = when {
+                        zoomGesture == 1f -> newOffset
+                        selectionRightEdge == canvasWidth -> canvasWidth - selectionWidth / 2f
+                        selectionLeftEdge == 0f -> selectionWidth / 2f
+                        else -> newOffset
+                    }
+
+                    // TODO don't include in new modifier, instead use callback and put this in collision detection function
+                    if (onSelectedRangeChange != null) {
+                        val isSelected =
+                            { (x, _, _): Triple<Float, Float, Any> -> x >= (offset - selectionWidth / 2) && x <= (offset + selectionWidth / 2) }
+                        val firstIncludedIndex = graphData.indexOfFirst(isSelected)
+                        val lastIncludedIndex = graphData.indexOfLast(isSelected)
+                        onSelectedRangeChange(firstIncludedIndex..lastIncludedIndex)
+                    }
+                }
+            )
+        }
+    ) {
         val drawingContext = getDrawingContext(this, data)
 
         drawOriginLines(drawingContext)
@@ -70,16 +136,35 @@ fun LineGraph(
         if (data.isNotEmpty()) drawBezierLine(drawingContext, data, color)
         if (showPoints && data.isNotEmpty()) drawPoints(drawingContext, data, color)
         if (selectionLine != null) drawSelectionLine(drawingContext, selectionLine)
+        if (selectionWidth < canvasWidth) drawSelectionArea(drawingContext, selectionWidth, offset)
     }
 }
+
+private fun drawSelectionArea(
+    drawingContext: DrawingContext,
+    selectionWidth: Float,
+    offset: Float,
+) {
+    drawingContext.drawScope.apply {
+        val alpha = 0.75f
+        drawRect(color = Color.Black,
+                 alpha = alpha,
+                 size = Size(offset - (selectionWidth / 2), size.height))
+        drawRect(color = Color.Black,
+                 alpha = alpha,
+                 size = Size(size.width - (offset + (selectionWidth / 2)), size.height),
+                 topLeft = Offset(offset + (selectionWidth / 2), 0f))
+    }
+}
+
 
 private fun getDrawingContext(drawScope: DrawScope, data: List<Point>): DrawingContext {
     val noLines = data.size < 2
 
     val xMin = data.minOfOrNull { it.x } ?: 0f
     val yMin = (data.minOfOrNull { it.y } ?: 0f).coerceAtMost(0f)
-    val xMax = if(noLines) xMin + 1f else data.maxOf { it.x }
-    val yMax = if(noLines) yMin + 1f else data.maxOf { it.y }
+    val xMax = if (noLines) xMin + 1f else data.maxOf { it.x }
+    val yMax = if (noLines) yMin + 1f else data.maxOf { it.y }
 
     val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, drawScope.size.width)
     val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, drawScope.size.height, 0f)
@@ -200,7 +285,9 @@ private val samplePoints = listOf(
 fun LineGraphPreview() {
     MaterialTheme {
         LineGraph(
-            modifier = Modifier.fillMaxWidth().height(300.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp),
             data = samplePoints
         )
     }
@@ -215,7 +302,8 @@ fun LineGraphPreview() {
 fun LineGraphPreview_WithoutDots_WithSelectionLine() {
     MaterialTheme {
         LineGraph(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .height(300.dp),
             data = samplePoints,
             showPoints = false,
@@ -233,7 +321,8 @@ fun LineGraphPreview_WithoutDots_WithSelectionLine() {
 fun LineGraphPreview_WithoutData() {
     MaterialTheme {
         LineGraph(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .height(300.dp),
             showPoints = true,
             data = listOf(Point(1f, 10f)),

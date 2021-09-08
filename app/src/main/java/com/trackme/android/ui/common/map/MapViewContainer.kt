@@ -20,6 +20,7 @@ fun MapViewContainer(
     track: List<TrackEntry>,
     current: TrackEntry?,
     modifier: Modifier = Modifier,
+    viewportTrack: List<TrackEntry> = track,
 ) {
 
     val mapContent = remember(map) {
@@ -27,10 +28,10 @@ fun MapViewContainer(
     }
 
     LaunchedEffect(map, current) {
+        val googleMap = map.awaitMap()
         if (current == null) {
             mapContent.current?.remove()
         } else {
-            val googleMap = map.awaitMap()
             mapContent.current?.remove()
             mapContent.current =
                 googleMap.addMarker(MarkerOptions().position(LatLng(current.latitude,
@@ -40,22 +41,27 @@ fun MapViewContainer(
 
     val trackColor = MaterialTheme.colors.primary
     LaunchedEffect(map, track) {
+        val googleMap = map.awaitMap()
         mapContent.track?.remove()
         if (track.isNotEmpty()) {
-            val googleMap = map.awaitMap()
             val latLong = track.map { LatLng(it.latitude, it.longitude) }
             mapContent.track = googleMap.addPolyline(PolylineOptions().addAll(
                 latLong
             )
                                                          .color(trackColor.toArgb()))
+        }
+    }
 
+    LaunchedEffect(viewportTrack) {
+        if(viewportTrack.isNotEmpty()) {
+            val googleMap = map.awaitMap()
+            val latLong = viewportTrack.map { LatLng(it.latitude, it.longitude) }
             val bundery = LatLngBounds.Builder()
                 .apply {
                     latLong.forEach { include(it) }
                 }
                 .build()
             googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bundery, 32))
-
         }
     }
 
