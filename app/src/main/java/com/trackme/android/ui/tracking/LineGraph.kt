@@ -4,7 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -31,20 +32,6 @@ data class Point(val x: Float, val y: Float) {
     }
 }
 
-private class Interpolation(srcFrom: Float, srcTo: Float, targetFrom: Float, targetTo: Float) {
-    private var scaleFactor: Float = 1f
-    private var offset: Float = 0f
-
-    init {
-        scaleFactor = (targetTo - targetFrom) / (srcTo - srcFrom)
-        offset = targetTo - scaleFactor * srcTo
-    }
-
-    fun interpolate(value: Float): Float {
-        return offset + scaleFactor * value
-    }
-}
-
 private data class DrawingContext(
     val xInter: Interpolation,
     val yInter: Interpolation,
@@ -67,67 +54,20 @@ fun LineGraph(
     onSelectedRangeChange: ((range: IntRange) -> Unit)? = null,
 ) {
     val color = MaterialTheme.colors.primary
-    var canvasWidth by remember { mutableStateOf(1f) }
-    var canvasHeight by remember { mutableStateOf(1f) }
-    var selectionWidth by remember { mutableStateOf(canvasWidth) }
-    var offset by remember { mutableStateOf(canvasWidth / 2) }
+    val selectionWindowState = rememberSelectionWindowState()
 
-    val graphData = remember(data, canvasWidth, canvasHeight) {
-        val noLines = data.size < 2
-
-        val xMin = data.minOfOrNull { it.x } ?: 0f
-        val yMin = (data.minOfOrNull { it.y } ?: 0f).coerceAtMost(0f)
-        val xMax = if (noLines) xMin + 1f else data.maxOf { it.x }
-        val yMax = if (noLines) yMin + 1f else data.maxOf { it.y }
-
-        val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, canvasWidth)
-        val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, canvasHeight, 0f)
-
-        data.map { Triple(xInter.interpolate(it.x), yInter.interpolate(it.y), it) }
+    val currentOnSelectionRangeChange: () -> Unit by rememberUpdatedState {
+        val range = getSelectedDataRange(getGraphData(data, selectionWindowState),
+                                         selectionWindowState)
+        onSelectedRangeChange?.invoke(range)
     }
+
 
     Canvas(modifier = modifier
         .background(Color.White)
-            // TODO breakout onGloballyPositioned & pointerInput to separate modifier
-        .onGloballyPositioned {
-            val newCanvasWidth = it.size.width.toFloat()
-            val interpolator = Interpolation(0f, canvasWidth, 0f, newCanvasWidth)
-            canvasWidth = newCanvasWidth
-            canvasHeight = it.size.width.toFloat()
-            selectionWidth = interpolator.interpolate(selectionWidth)
-            offset = interpolator.interpolate(offset)
-        }
-        .pointerInput(graphData) {
-            detectTransformGestures(
-                onGesture = { _, panGesture, zoomGesture, _ ->
-                    val newSelectionWidth = (zoomGesture * selectionWidth).coerceIn(0f, canvasWidth)
-                    val selectionRightEdge =
-                        (offset + newSelectionWidth / 2f).coerceAtMost(canvasWidth)
-                    val selectionLeftEdge = (offset - newSelectionWidth / 2f).coerceAtLeast(0f)
-                    selectionWidth = (selectionRightEdge - selectionLeftEdge).absoluteValue
-
-                    val newOffset = (offset + panGesture.x).coerceIn(selectionWidth / 2,
-                                                                     canvasWidth - selectionWidth / 2)
-
-                    // TODO see if this can be refactored
-                    offset = when {
-                        zoomGesture == 1f -> newOffset
-                        selectionRightEdge == canvasWidth -> canvasWidth - selectionWidth / 2f
-                        selectionLeftEdge == 0f -> selectionWidth / 2f
-                        else -> newOffset
-                    }
-
-                    // TODO don't include in new modifier, instead use callback and put this in collision detection function
-                    if (onSelectedRangeChange != null) {
-                        val isSelected =
-                            { (x, _, _): Triple<Float, Float, Any> -> x >= (offset - selectionWidth / 2) && x <= (offset + selectionWidth / 2) }
-                        val firstIncludedIndex = graphData.indexOfFirst(isSelected)
-                        val lastIncludedIndex = graphData.indexOfLast(isSelected)
-                        onSelectedRangeChange(firstIncludedIndex..lastIncludedIndex)
-                    }
-                }
-            )
-        }
+        .selectionWindow(
+            { currentOnSelectionRangeChange() },
+            selectionWindowState)
     ) {
         val drawingContext = getDrawingContext(this, data)
 
@@ -136,8 +76,48 @@ fun LineGraph(
         if (data.isNotEmpty()) drawBezierLine(drawingContext, data, color)
         if (showPoints && data.isNotEmpty()) drawPoints(drawingContext, data, color)
         if (selectionLine != null) drawSelectionLine(drawingContext, selectionLine)
-        if (selectionWidth < canvasWidth) drawSelectionArea(drawingContext, selectionWidth, offset)
+        if (selectionWindowState.selectionWidth < selectionWindowState.canvasWidth) drawSelectionArea(
+            drawingContext,
+            selectionWindowState.selectionWidth,
+            selectionWindowState.offset)
     }
+}
+
+private fun getGraphData(
+    data: List<Point>,
+    state: SelectionWindowState,
+): List<Triple<Float, Float, Point>> {
+    val noLines = data.size < 2
+
+    val xMin = data.minOfOrNull { it.x } ?: 0f
+    val yMin = (data.minOfOrNull { it.y } ?: 0f).coerceAtMost(0f)
+    val xMax = if (noLines) xMin + 1f else data.maxOf { it.x }
+    val yMax = if (noLines) yMin + 1f else data.maxOf { it.y }
+
+    val xInter = Interpolation(xMin - xMax * 0.05f,
+                               xMax * 1.1f,
+                               0f,
+                               state.canvasWidth)
+    val yInter = Interpolation(yMin - yMax * 0.05f,
+                               yMax * 1.1f,
+                               state.canvasHeight,
+                               0f)
+
+    return data.map { Triple(xInter.interpolate(it.x), yInter.interpolate(it.y), it) }
+}
+
+private fun getSelectedDataRange(
+    graphData: List<Triple<Float, Float, Point>>,
+    state: SelectionWindowState,
+): IntRange {
+    val (_, _, selectionWidth, offset) = state
+    val isSelected =
+        { (x, _, _): Triple<Float, Float, Any> -> x >= (offset - selectionWidth / 2) && x <= (offset + selectionWidth / 2) }
+    val firstIncludedIndex = graphData.indexOfFirst(isSelected)
+    val lastIncludedIndex = graphData.indexOfLast(isSelected)
+
+    return if (firstIncludedIndex == lastIncludedIndex) IntRange.EMPTY
+    else firstIncludedIndex..lastIncludedIndex
 }
 
 private fun drawSelectionArea(

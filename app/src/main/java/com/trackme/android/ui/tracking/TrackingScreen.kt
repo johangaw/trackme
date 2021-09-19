@@ -41,6 +41,9 @@ fun TrackingScreen(
             val end =
                 LocalDateTime.ofEpochSecond(selectedTrackEntries.last().time / 1000, 0, ZoneOffset.UTC)
             StaticClock(start, end, Modifier.align(Alignment.CenterHorizontally))
+        } else {
+            val time = LocalDateTime.MIN
+            StaticClock(time, time, Modifier.align(Alignment.CenterHorizontally))
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
