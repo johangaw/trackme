@@ -1,4 +1,4 @@
-package com.trackme.android.ui.tracking
+package com.trackme.android.ui.details
 
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.runtime.*

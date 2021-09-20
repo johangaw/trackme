@@ -16,11 +16,9 @@ import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.trackme.android.data.Route
-import com.trackme.android.ui.common.map.MapViewContainer
-import com.trackme.android.ui.common.map.rememberMapViewWithLifecycle
-import com.trackme.android.ui.tracking.TrackingScreen
-import com.trackme.android.ui.tracking.TrackingViewModel
-import com.trackme.android.ui.tracking.TrackingViewModelFactory
+import com.trackme.android.ui.details.TrackDetailsScreen
+import com.trackme.android.ui.details.TrackingViewModel
+import com.trackme.android.ui.details.TrackingViewModelFactory
 import com.trackme.android.ui.tracks.TracksScreen
 import com.trackme.android.ui.tracks.TracksViewModel
 import com.trackme.android.ui.tracks.TracksViewModelFactory
@@ -83,7 +81,7 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
         else null
     }
 
-    TrackingScreen(
+    TrackDetailsScreen(
         onStopClick = stopLocationTracking,
         startedAt = startedAt,
         totalDistance = totalDistance,

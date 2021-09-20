@@ -1,4 +1,4 @@
-package com.trackme.android.ui.tracking
+package com.trackme.android.ui.details
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -21,7 +21,7 @@ import java.time.ZoneOffset
 import kotlin.math.abs
 
 @Composable
-fun TrackingScreen(
+fun TrackDetailsScreen(
     onStopClick: () -> Unit,
     startedAt: LocalDateTime?,
     totalDistance: Float,
@@ -154,7 +154,7 @@ fun TrackingScreenPreview() {
         .minusMinutes(2)
         .minusSeconds(36)
     MaterialTheme {
-        TrackingScreen(
+        TrackDetailsScreen(
             onStopClick = {},
             startedAt = trackStartedAt,
             totalDistance = 1337F,
@@ -174,7 +174,7 @@ fun TrackingScreenPreview() {
 )
 fun NotTrackingScreenPreview() {
     MaterialTheme {
-        TrackingScreen(
+        TrackDetailsScreen(
             onStopClick = {},
             startedAt = null,
             totalDistance = 0F,
