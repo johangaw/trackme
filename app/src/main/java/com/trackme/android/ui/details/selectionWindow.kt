@@ -27,8 +27,6 @@ fun rememberSelectionWindowState(): SelectionWindowState {
 fun Modifier.selectionWindow(
     state: SelectionWindowState,
 ): Modifier {
-
-
     return this
         .onGloballyPositioned {
             val newCanvasWidth = it.size.width.toFloat()

@@ -59,8 +59,7 @@ fun LineGraph(
 
     Canvas(modifier = modifier
         .background(Color.White)
-        .selectionWindow(
-            selectionWindowState)
+        .selectionWindow(selectionWindowState)
     ) {
         val drawingContext = getDrawingContext(this, data)
 

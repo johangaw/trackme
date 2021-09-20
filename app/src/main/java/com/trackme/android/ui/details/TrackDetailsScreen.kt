@@ -27,120 +27,21 @@ fun TrackDetailsScreen(
     totalDistance: Float,
     averageSpeed: Float,
     trackEntries: List<TrackEntry>,
-    selectedTrackEntries:  List<TrackEntry>,
-    onSelectTrackRange: (range: IntRange) -> Unit
+    selectedTrackEntries: List<TrackEntry>,
+    onSelectTrackRange: (range: IntRange) -> Unit,
 ) {
     val running = startedAt != null
 
-    Column(Modifier.fillMaxSize()) {
-        if (running) {
-            Clock(startedAt, Modifier.align(Alignment.CenterHorizontally))
-        } else if (selectedTrackEntries.isNotEmpty()) {
-            val start =
-                LocalDateTime.ofEpochSecond(selectedTrackEntries.first().time / 1000, 0, ZoneOffset.UTC)
-            val end =
-                LocalDateTime.ofEpochSecond(selectedTrackEntries.last().time / 1000, 0, ZoneOffset.UTC)
-            StaticClock(start, end, Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            val time = LocalDateTime.MIN
-            StaticClock(time, time, Modifier.align(Alignment.CenterHorizontally))
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Distance(totalDistance, style = MaterialTheme.typography.h4)
-            Speed(averageSpeed, style = MaterialTheme.typography.h4)
-        }
-
-        var graphType: GraphType by remember { mutableStateOf(GraphType.SPEED) }
-        val normalizer = trackEntries.firstOrNull()?.time ?: 0
-        val speedPoints =
-            remember(trackEntries, graphType) {
-                trackEntries.map {
-                    Point((it.time - normalizer).toFloat(),
-                          if (graphType == GraphType.SPEED) it.speed else it.altitude.toFloat())
-                }
-            }
-        val (value, setValue) = remember { mutableStateOf(speedPoints.firstOrNull()?.x ?: 0f) }
-        val selection = SelectionLine(value, null, 4f, MaterialTheme.colors.secondary)
-
-        LineGraph(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp),
-            data = speedPoints,
-            showPoints = speedPoints.size < 10,
-            selectionLine = if (!running) selection else null,
-            onSelectedRangeChange = onSelectTrackRange
-        )
-        if (running) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                RoundTextButton(
-                    onClick = onStopClick,
-                    text = "Stop",
-                )
-            }
-        } else {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val map = rememberMapViewWithLifecycle()
-            val current = speedPoints.indexOf(speedPoints.reduceOrNull { left, right ->
-                if (abs(left.x - value) < abs(right.x - value)) left else right
-            })
-                .let {
-                    if (it > -1)
-                        trackEntries[it]
-                    else null
-                }
-            MapViewContainer(map = map,
-                             track = selectedTrackEntries,
-                             current = current,
-                             modifier = Modifier
-                                 .fillMaxWidth()
-                                 .height(200.dp),
-                             viewportTrack = trackEntries
-            )
-
-
-            Spacer(modifier = Modifier.height(16.dp))
-            val selected = search(value.toLong() + normalizer, trackEntries)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                ToggleButton(checked = graphType == GraphType.SPEED,
-                             onCheckedChange = { graphType = GraphType.SPEED }) {
-                    Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h4)
-                }
-                ToggleButton(checked = graphType == GraphType.ALTITUDE,
-                             onCheckedChange = { graphType = GraphType.ALTITUDE }) {
-                    Altitude(selected?.altitude ?: -1.0, style = MaterialTheme.typography.h4)
-                }
-            }
-
-            val rangeLower = speedPoints.minOfOrNull { it.x } ?: 0f
-            val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
-            Slider(
-                value = value,
-                onValueChange = setValue,
-                valueRange = rangeLower..rangeUpper,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
-    }
+    if (running)
+        RunningTrackDetails(onStopClick, startedAt, totalDistance, averageSpeed)
+    else
+        TrackDetails(totalDistance,
+                     averageSpeed,
+                     trackEntries,
+                     selectedTrackEntries,
+                     onSelectTrackRange)
 }
 
-enum class GraphType {
-    SPEED, ALTITUDE
-}
-
-fun search(time: Long, entries: List<TrackEntry>): TrackEntry? {
-    return entries.minByOrNull { abs(it.time - time) }
-}
 
 @Composable
 @Preview(
