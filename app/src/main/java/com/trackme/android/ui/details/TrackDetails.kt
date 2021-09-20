@@ -15,7 +15,7 @@ import com.trackme.android.ui.common.map.MapViewContainer
 import com.trackme.android.ui.common.map.rememberMapViewWithLifecycle
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 enum class GraphType {
     SPEED, ALTITUDE
@@ -30,18 +30,19 @@ fun TrackDetails(
     onSelectTrackRange: (range: IntRange) -> Unit,
 ) {
     var graphType: GraphType by remember { mutableStateOf(GraphType.SPEED) }
-    val speedPoints =
-        remember(trackEntries, graphType) {
-            val normalizer = trackEntries.firstOrNull()?.time ?: 0
+    val normalizer = trackEntries.firstOrNull()?.time ?: 0
+    val selectionRangeLower = trackEntries.minOfOrNull { (it.time - normalizer).toFloat() } ?: 0f
+    val selectionRangeUpper = trackEntries.maxOfOrNull { (it.time - normalizer).toFloat() } ?: 0f
+    val (selectionValue, setSelectionValue) = remember { mutableStateOf(selectionRangeLower) }
+    val selectedEntry =
+        trackEntries.minByOrNull { (it.time - normalizer - selectionValue.toLong()).absoluteValue }
+    val graphPoints =
+        remember(trackEntries, graphType, normalizer) {
             trackEntries.map {
                 Point((it.time - normalizer).toFloat(),
                       if (graphType == GraphType.SPEED) it.speed else it.altitude.toFloat())
             }
         }
-    val (selectionValue, setSelectionValue) = remember {
-        mutableStateOf(speedPoints.firstOrNull()?.x ?: 0f)
-    }
-    val selection = SelectionLine(selectionValue, null, 4f, MaterialTheme.colors.secondary)
 
     Column(Modifier.fillMaxSize()) {
         TotalTrackTime(trackEntries, Modifier.align(Alignment.CenterHorizontally))
@@ -51,37 +52,24 @@ fun TrackDetails(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp),
-            data = speedPoints,
-            showPoints = speedPoints.size < 10,
-            selectionLine = selection,
+            data = graphPoints,
+            showPoints = graphPoints.size < 10,
+            selectionLine = SelectionLine(selectionValue, null, 4f, MaterialTheme.colors.secondary),
             onSelectedRangeChange = onSelectTrackRange
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val map = rememberMapViewWithLifecycle()
-        val current = speedPoints.indexOf(speedPoints.reduceOrNull { left, right ->
-            if (abs(left.x - selectionValue) < abs(right.x - selectionValue)) left else right
-        })
-            .let {
-                if (it > -1)
-                    trackEntries[it]
-                else null
-            }
-        MapViewContainer(map = map,
+        MapViewContainer(map = rememberMapViewWithLifecycle(),
                          track = selectedTrackEntries,
-                         current = current,
+                         current = selectedEntry,
                          modifier = Modifier
                              .fillMaxWidth()
                              .height(200.dp),
                          viewportTrack = trackEntries
         )
 
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        val normalizer = trackEntries.firstOrNull()?.time ?: 0
-        val selected = trackEntries.minByOrNull { abs(it.time - selectionValue.toLong() + normalizer) }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -89,20 +77,18 @@ fun TrackDetails(
         ) {
             ToggleButton(checked = graphType == GraphType.SPEED,
                          onCheckedChange = { graphType = GraphType.SPEED }) {
-                Speed(speed = selected?.speed ?: -1f, style = MaterialTheme.typography.h4)
+                Speed(speed = selectedEntry?.speed ?: -1f, style = MaterialTheme.typography.h4)
             }
             ToggleButton(checked = graphType == GraphType.ALTITUDE,
                          onCheckedChange = { graphType = GraphType.ALTITUDE }) {
-                Altitude(selected?.altitude ?: -1.0, style = MaterialTheme.typography.h4)
+                Altitude(selectedEntry?.altitude ?: -1.0, style = MaterialTheme.typography.h4)
             }
         }
 
-        val rangeLower = speedPoints.minOfOrNull { it.x } ?: 0f
-        val rangeUpper = speedPoints.maxOfOrNull { it.x } ?: 0f
         Slider(
             value = selectionValue,
             onValueChange = setSelectionValue,
-            valueRange = rangeLower..rangeUpper,
+            valueRange = selectionRangeLower..selectionRangeUpper,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
     }
