@@ -56,17 +56,14 @@ fun LineGraph(
     val color = MaterialTheme.colors.primary
     val selectionWindowState = rememberSelectionWindowState()
 
-    val currentOnSelectionRangeChange: () -> Unit by rememberUpdatedState {
-        val range = getSelectedDataRange(getGraphData(data, selectionWindowState),
-                                         selectionWindowState)
+    LaunchedEffect(data, selectionWindowState.offset, selectionWindowState.selectionWidth) {
+        val range = getSelectedDataRange(data, selectionWindowState)
         onSelectedRangeChange?.invoke(range)
     }
-
 
     Canvas(modifier = modifier
         .background(Color.White)
         .selectionWindow(
-            { currentOnSelectionRangeChange() },
             selectionWindowState)
     ) {
         val drawingContext = getDrawingContext(this, data)
@@ -83,62 +80,29 @@ fun LineGraph(
     }
 }
 
-private fun getGraphData(
+private fun getSelectedDataRange(
     data: List<Point>,
     state: SelectionWindowState,
-): List<Triple<Float, Float, Point>> {
-    val noLines = data.size < 2
-
-    val xMin = data.minOfOrNull { it.x } ?: 0f
-    val yMin = (data.minOfOrNull { it.y } ?: 0f).coerceAtMost(0f)
-    val xMax = if (noLines) xMin + 1f else data.maxOf { it.x }
-    val yMax = if (noLines) yMin + 1f else data.maxOf { it.y }
-
-    val xInter = Interpolation(xMin - xMax * 0.05f,
-                               xMax * 1.1f,
-                               0f,
-                               state.canvasWidth)
-    val yInter = Interpolation(yMin - yMax * 0.05f,
-                               yMax * 1.1f,
-                               state.canvasHeight,
-                               0f)
-
-    return data.map { Triple(xInter.interpolate(it.x), yInter.interpolate(it.y), it) }
-}
-
-private fun getSelectedDataRange(
-    graphData: List<Triple<Float, Float, Point>>,
-    state: SelectionWindowState,
 ): IntRange {
-    val (_, _, selectionWidth, offset) = state
+    val (canvasWidth, canvasHeight, selectionWidth, offset) = state
+
+    val (xInter, _) = getDataInterpolations(canvasWidth, canvasHeight, data)
+    val xPositions = data.map { xInter.interpolate(it.x) }
+
     val isSelected =
-        { (x, _, _): Triple<Float, Float, Any> -> x >= (offset - selectionWidth / 2) && x <= (offset + selectionWidth / 2) }
-    val firstIncludedIndex = graphData.indexOfFirst(isSelected)
-    val lastIncludedIndex = graphData.indexOfLast(isSelected)
+        { x: Float -> x >= (offset - selectionWidth / 2) && x <= (offset + selectionWidth / 2) }
+    val firstIncludedIndex = xPositions.indexOfFirst(isSelected)
+    val lastIncludedIndex = xPositions.indexOfLast(isSelected)
 
     return if (firstIncludedIndex == lastIncludedIndex) IntRange.EMPTY
     else firstIncludedIndex..lastIncludedIndex
 }
 
-private fun drawSelectionArea(
-    drawingContext: DrawingContext,
-    selectionWidth: Float,
-    offset: Float,
-) {
-    drawingContext.drawScope.apply {
-        val alpha = 0.75f
-        drawRect(color = Color.Black,
-                 alpha = alpha,
-                 size = Size(offset - (selectionWidth / 2), size.height))
-        drawRect(color = Color.Black,
-                 alpha = alpha,
-                 size = Size(size.width - (offset + (selectionWidth / 2)), size.height),
-                 topLeft = Offset(offset + (selectionWidth / 2), 0f))
-    }
-}
-
-
-private fun getDrawingContext(drawScope: DrawScope, data: List<Point>): DrawingContext {
+private fun getDataInterpolations(
+    width: Float,
+    height: Float,
+    data: List<Point>,
+): Pair<Interpolation, Interpolation> {
     val noLines = data.size < 2
 
     val xMin = data.minOfOrNull { it.x } ?: 0f
@@ -146,8 +110,14 @@ private fun getDrawingContext(drawScope: DrawScope, data: List<Point>): DrawingC
     val xMax = if (noLines) xMin + 1f else data.maxOf { it.x }
     val yMax = if (noLines) yMin + 1f else data.maxOf { it.y }
 
-    val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, drawScope.size.width)
-    val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, drawScope.size.height, 0f)
+    val xInter = Interpolation(xMin - xMax * 0.05f, xMax * 1.1f, 0f, width)
+    val yInter = Interpolation(yMin - yMax * 0.05f, yMax * 1.1f, height, 0f)
+
+    return Pair(xInter, yInter)
+}
+
+private fun getDrawingContext(drawScope: DrawScope, data: List<Point>): DrawingContext {
+    val (xInter, yInter) = getDataInterpolations(drawScope.size.width, drawScope.size.height, data)
     return DrawingContext(xInter, yInter, drawScope)
 }
 
@@ -241,6 +211,23 @@ private fun drawPoints(drawingContext: DrawingContext, data: List<Point>, color:
                                 yInter.interpolate(p.y))
             drawCircle(color, 10f, center)
         }
+    }
+}
+
+private fun drawSelectionArea(
+    drawingContext: DrawingContext,
+    selectionWidth: Float,
+    offset: Float,
+) {
+    drawingContext.drawScope.apply {
+        val alpha = 0.75f
+        drawRect(color = Color.Black,
+                 alpha = alpha,
+                 size = Size(offset - (selectionWidth / 2), size.height))
+        drawRect(color = Color.Black,
+                 alpha = alpha,
+                 size = Size(size.width - (offset + (selectionWidth / 2)), size.height),
+                 topLeft = Offset(offset + (selectionWidth / 2), 0f))
     }
 }
 

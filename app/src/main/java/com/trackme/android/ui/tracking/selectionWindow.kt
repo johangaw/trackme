@@ -25,7 +25,6 @@ fun rememberSelectionWindowState(): SelectionWindowState {
 }
 
 fun Modifier.selectionWindow(
-    onSelectedRangeChange: (() -> Unit),
     state: SelectionWindowState,
 ): Modifier {
 
@@ -60,8 +59,6 @@ fun Modifier.selectionWindow(
                         selectionLeftEdge == 0f -> state.selectionWidth / 2f
                         else -> newOffset
                     }
-
-                    onSelectedRangeChange()
                 }
             )
         }
