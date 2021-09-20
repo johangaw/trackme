@@ -69,7 +69,6 @@ fun LineGraph(
         val drawingContext = getDrawingContext(this, data)
 
         drawOriginLines(drawingContext)
-        if (data.isNotEmpty()) drawLine(drawingContext, data, Color.LightGray)
         if (data.isNotEmpty()) drawBezierLine(drawingContext, data, color)
         if (showPoints && data.isNotEmpty()) drawPoints(drawingContext, data, color)
         if (selectionLine != null) drawSelectionLine(drawingContext, selectionLine)
@@ -146,19 +145,6 @@ private fun drawSelectionLine(drawingContext: DrawingContext, selection: Selecti
                 selection.width
             )
         }
-    }
-}
-
-private fun drawLine(drawingContext: DrawingContext, data: List<Point>, color: Color) {
-    val (xInter, yInter) = drawingContext
-    drawingContext.drawScope.apply {
-        val path = Path()
-        data.forEachIndexed { index, point ->
-            val x = xInter.interpolate(point.x)
-            val y = yInter.interpolate(point.y)
-            if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
-        }
-        drawPath(path, color, style = Stroke())
     }
 }
 
