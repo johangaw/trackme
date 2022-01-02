@@ -1,24 +1,11 @@
 package com.trackme.android.ui.details
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Slider
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.trackme.android.data.TrackEntry
-import com.trackme.android.ui.common.Altitude
-import com.trackme.android.ui.common.Distance
-import com.trackme.android.ui.common.Speed
-import com.trackme.android.ui.common.ToggleButton
-import com.trackme.android.ui.common.map.MapViewContainer
-import com.trackme.android.ui.common.map.rememberMapViewWithLifecycle
 import java.time.LocalDateTime
-import java.time.ZoneOffset
-import kotlin.math.abs
 
 @Composable
 fun TrackDetailsScreen(
@@ -29,6 +16,7 @@ fun TrackDetailsScreen(
     trackEntries: List<TrackEntry>,
     selectedTrackEntries: List<TrackEntry>,
     onSelectTrackRange: (range: IntRange) -> Unit,
+    onMapClick: () -> Unit,
 ) {
     val running = startedAt != null
 
@@ -39,7 +27,9 @@ fun TrackDetailsScreen(
                      averageSpeed,
                      trackEntries,
                      selectedTrackEntries,
-                     onSelectTrackRange)
+                     onSelectTrackRange,
+                     onMapClick
+        )
 }
 
 
@@ -62,7 +52,8 @@ fun TrackingScreenPreview() {
             averageSpeed = 3.67F,
             trackEntries = trackEntries,
             selectedTrackEntries = trackEntries,
-            onSelectTrackRange = {}
+            onSelectTrackRange = {},
+            onMapClick = {},
         )
     }
 }
@@ -82,7 +73,8 @@ fun NotTrackingScreenPreview() {
             averageSpeed = 0.0F,
             trackEntries = trackEntries,
             selectedTrackEntries = trackEntries,
-            onSelectTrackRange = {}
+            onSelectTrackRange = {},
+            onMapClick = {},
         )
     }
 }

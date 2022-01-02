@@ -12,7 +12,6 @@ import com.trackme.android.ui.common.Altitude
 import com.trackme.android.ui.common.Speed
 import com.trackme.android.ui.common.ToggleButton
 import com.trackme.android.ui.common.map.MapViewContainer
-import com.trackme.android.ui.common.map.rememberMapViewWithLifecycle
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import kotlin.math.absoluteValue
@@ -28,6 +27,7 @@ fun TrackDetails(
     trackEntries: List<TrackEntry>,
     selectedTrackEntries: List<TrackEntry>,
     onSelectTrackRange: (range: IntRange) -> Unit,
+    onMapClick: () -> Unit,
 ) {
     var graphType: GraphType by remember { mutableStateOf(GraphType.SPEED) }
     val normalizer = trackEntries.firstOrNull()?.time ?: 0
@@ -60,13 +60,14 @@ fun TrackDetails(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        MapViewContainer(map = rememberMapViewWithLifecycle(),
-                         track = selectedTrackEntries,
+        MapViewContainer(track = selectedTrackEntries,
                          current = selectedEntry,
                          modifier = Modifier
                              .fillMaxWidth()
                              .height(200.dp),
-                         viewportTrack = trackEntries
+                         viewportTrack = trackEntries,
+                         onClick = { onMapClick() },
+                         interactive = false
         )
 
         Spacer(modifier = Modifier.height(16.dp))

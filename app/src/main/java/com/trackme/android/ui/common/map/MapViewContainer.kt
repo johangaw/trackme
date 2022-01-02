@@ -6,7 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.libraries.maps.CameraUpdateFactory
-import com.google.android.libraries.maps.MapView
 import com.google.android.libraries.maps.model.*
 import com.google.maps.android.ktx.awaitMap
 import com.trackme.android.data.TrackEntry
@@ -16,15 +15,27 @@ data class MapContent(var track: Polyline?, var current: Marker?)
 
 @Composable
 fun MapViewContainer(
-    map: MapView,
     track: List<TrackEntry>,
-    current: TrackEntry?,
     modifier: Modifier = Modifier,
+    current: TrackEntry? = null,
     viewportTrack: List<TrackEntry> = track,
+    onClick: (() -> Unit)? = null,
+    interactive: Boolean = true,
 ) {
+    val map = rememberMapViewWithLifecycle()
 
     val mapContent = remember(map) {
         MapContent(null, null)
+    }
+
+    val onClick by rememberUpdatedState(onClick)
+    LaunchedEffect(map) {
+        val googleMap = map.awaitMap()
+        googleMap.setOnMapClickListener { onClick?.invoke() }
+        googleMap.setOnMarkerClickListener {
+            onClick?.invoke()
+            true
+        }
     }
 
     LaunchedEffect(map, current) {
@@ -53,15 +64,15 @@ fun MapViewContainer(
     }
 
     LaunchedEffect(viewportTrack) {
-        if(viewportTrack.isNotEmpty()) {
+        if (viewportTrack.isNotEmpty()) {
             val googleMap = map.awaitMap()
             val latLong = viewportTrack.map { LatLng(it.latitude, it.longitude) }
-            val bundery = LatLngBounds.Builder()
+            val boundary = LatLngBounds.Builder()
                 .apply {
                     latLong.forEach { include(it) }
                 }
                 .build()
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bundery, 32))
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundary, 32))
         }
     }
 
@@ -70,7 +81,7 @@ fun MapViewContainer(
     AndroidView({ map }, modifier = modifier) { mapView ->
         coroutineScope.launch {
             val googleMap = mapView.awaitMap()
-            googleMap.uiSettings.setAllGesturesEnabled(false)
+            googleMap.uiSettings.setAllGesturesEnabled(interactive)
         }
     }
 }

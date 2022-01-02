@@ -19,6 +19,7 @@ import com.trackme.android.data.Route
 import com.trackme.android.ui.details.TrackDetailsScreen
 import com.trackme.android.ui.details.TrackingViewModel
 import com.trackme.android.ui.details.TrackingViewModelFactory
+import com.trackme.android.ui.details.map.TrackMapScreen
 import com.trackme.android.ui.tracks.TracksScreen
 import com.trackme.android.ui.tracks.TracksViewModel
 import com.trackme.android.ui.tracks.TracksViewModelFactory
@@ -45,8 +46,21 @@ fun App(
                    }),
                    deepLinks = listOf(navDeepLink { uriPattern = Route.TrackDetails.deepLinkRoute })
         ) {
-            TrackingScreenWrapper(trackId = it.arguments?.getLong(Route.TrackDetails.trackIdParam)!!,
-                                  stopLocationTracking)
+            TrackDetailsScreenWrapper(trackId = it.arguments?.getLong(Route.TrackDetails.trackIdParam)!!,
+                                      stopLocationTracking = stopLocationTracking,
+                                      navigateToTrackMap = { trackId ->
+                                          navController.navigate(Route.TrackMap.createLink(trackId))
+                                      }
+            )
+        }
+
+        composable(Route.TrackMap.route,
+                   arguments = listOf(navArgument(Route.TrackMap.trackIdParam) {
+                       type = NavType.LongType
+                   }),
+                   deepLinks = listOf(navDeepLink { uriPattern = Route.TrackMap.deepLinkRoute })
+        ) {
+            TrackMapWrapper(trackId = it.arguments?.getLong(Route.TrackMap.trackIdParam)!!)
         }
     }
 }
@@ -59,7 +73,28 @@ fun AppPreview() {
 }
 
 @Composable
-fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
+fun TrackMapWrapper(trackId: Long) {
+    val viewModel = viewModel(
+        modelClass = TrackingViewModel::class.java,
+        factory = TrackingViewModelFactory(LocalContext.current.applicationContext)
+    )
+
+    LaunchedEffect(trackId) {
+        viewModel.setTrackId(trackId)
+    }
+
+    val trackEntries by viewModel.activeTrackEntries.observeAsState(emptyList())
+    TrackMapScreen(
+        track = trackEntries
+    )
+}
+
+@Composable
+fun TrackDetailsScreenWrapper(
+    trackId: Long,
+    stopLocationTracking: () -> Unit,
+    navigateToTrackMap: (trackId: Long) -> Unit,
+) {
     val viewModel = viewModel(
         modelClass = TrackingViewModel::class.java,
         factory = TrackingViewModelFactory(LocalContext.current.applicationContext)
@@ -88,7 +123,8 @@ fun TrackingScreenWrapper(trackId: Long, stopLocationTracking: () -> Unit) {
         averageSpeed = averageSpeed,
         trackEntries = trackEntries,
         selectedTrackEntries = selectedTrackEntries,
-        onSelectTrackRange = viewModel::setSelectedRange
+        onSelectTrackRange = viewModel::setSelectedRange,
+        onMapClick = { navigateToTrackMap(trackId) }
     )
 }
 
