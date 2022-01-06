@@ -65,6 +65,8 @@ if(keystorePropertiesFile.exists()) {
 def secretProperties = new Properties()
 secretProperties.load(new FileInputStream(rootProject.file('secrets.properties')))
 
+def versionProperties = VersionProperties.load(rootProject.file('version.properties'))
+
 android {
     signingConfigs {
         release {
@@ -81,8 +83,8 @@ android {
         applicationId "com.trackme.android"
         minSdkVersion 28
         targetSdkVersion 30
-        versionCode 5
-        versionName "1.1"
+        versionCode versionProperties.versionCode
+        versionName versionProperties.versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

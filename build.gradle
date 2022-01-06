@@ -24,3 +24,22 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task bumpVersion {
+    doLast {
+        def versionFile = rootProject.file("version.properties")
+        def versions = VersionProperties.load(versionFile)
+
+        def versionCode = versions.versionCode
+        def versionName = versions.versionName
+        def newVersionCode = versionCode + 1
+        def newVersionName = System.getenv("TRACKME_VERSION_NAME") ?: versionName
+
+        versions.setVersionCode(newVersionCode)
+        versions.setVersionName(newVersionName)
+        versions.store(versionFile)
+
+        println("Bumbing versionCode: $versionCode => $newVersionCode ($newVersionName)")
+    }
+}
+
