@@ -1,9 +1,11 @@
 name: Release to internal testing
 
 on:
-  push:
-    tags:
-      - "*"
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Release name'
+        required: true
 
 jobs:
   release:
@@ -33,7 +35,7 @@ jobs:
 
       - name: Bump app version
         env:
-          TRACKME_VERSION_NAME: ${{ github.github.ref_name }}
+          TRACKME_VERSION_NAME: ${{ github.event.inputs.name }}
         run: ./gradlew bumpVersion
 
       - name: Commit updated version
@@ -56,7 +58,7 @@ jobs:
           package-name: com.trackme.android
           aab-file: ./app/build/outputs/bundle/release/app-release.aab
           track: internal
-          release-name: ${{ github.github.ref_name }}
+          release-name: ${{ github.event.inputs.name }}
 
       - name: Push version bump
         run: git push
