@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -23,35 +24,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
-
-// TODO make vertical dotted...
-private data class DottedShape(
-    val step: Dp,
-) : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ) = Outline.Generic(Path().apply {
-        val stepPx = with(density) { step.toPx() }
-        val stepsCount = (size.width / stepPx).roundToInt()
-        val actualStep = size.width / stepsCount
-        val dotSize = Size(width = actualStep / 2, height = size.height)
-        for (i in 0 until stepsCount) {
-            addRect(
-                Rect(
-                    offset = Offset(x = i * actualStep, y = 0f),
-                    size = dotSize
-                )
-            )
-        }
-        close()
-    })
-}
 
 interface IPoint {
     val x: Float
@@ -118,7 +95,22 @@ fun LineGraph(
             .background(Color.White)
             .padding(horizontal = selectionKnobSize / 2)
     ) {
-        SelectionLine(selectionOffset, selectionColor)
+        val selectionLineWidth = 2.dp
+        Column(
+            Modifier
+                .width(selectionLineWidth)
+                .offset {
+                    IntOffset(
+                        selectionOffset.roundToInt() - (selectionLineWidth.toPx() / 2).toInt(),
+                        0
+                    )
+                }, horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Hejsan", softWrap = false, overflow = TextOverflow.Visible)
+
+
+
+            SelectionLine(Modifier.width(selectionLineWidth), selectionColor)
+        }
 
         Column {
             Canvas(
@@ -198,18 +190,10 @@ fun LineGraph(
 }
 
 @Composable
-private fun SelectionLine(selectionOffset: Float, color: Color) {
-    val selectionLineWidth = 2.dp
+private fun SelectionLine(modifier: Modifier = Modifier, color: Color) {
     Box(
-        Modifier
+        modifier
             .fillMaxHeight()
-            .width(selectionLineWidth)
-            .offset {
-                IntOffset(
-                    selectionOffset.roundToInt() - (selectionLineWidth.toPx() / 2).toInt(),
-                    0
-                )
-            }
             .background(
                 Brush.verticalGradient(
                     0f to Color.White,
