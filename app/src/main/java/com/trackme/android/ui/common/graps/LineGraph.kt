@@ -19,14 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -45,7 +45,7 @@ fun createInterpolation(
     xRange: Pair<Float, Float>,
     xTargetRange: Pair<Float, Float>,
     yRange: Pair<Float, Float>,
-    yTargetRange: Pair<Float, Float>
+    yTargetRange: Pair<Float, Float>,
 ): Interpolation {
     val dx = abs(xTargetRange.second - xTargetRange.first) / abs(xRange.second - xRange.first)
     val dy = abs(yTargetRange.second - yTargetRange.first) / abs(yRange.second - yRange.first)
@@ -56,7 +56,7 @@ infix fun Float.to(target: Float): Pair<Float, Float> = Pair(this, target)
 
 
 data class Options(
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
 )
 
 @Composable
@@ -69,9 +69,15 @@ fun LineGraph(
     val lineBrush = SolidColor(Color.Black)
     val selectionKnobSize = 24.dp
     val xRange =
-        remember(points) { points.minOf { it.x }.coerceAtMost(0f) to points.maxOf { it.x } }
+        remember(points) {
+            points.minOf { it.x }
+                .coerceAtMost(0f) to points.maxOf { it.x }
+        }
     val yRange =
-        remember(points) { points.minOf { it.y }.coerceAtMost(0f) to points.maxOf { it.y } }
+        remember(points) {
+            points.minOf { it.y }
+                .coerceAtMost(0f) to points.maxOf { it.y }
+        }
 
     var selectionOffset by remember { mutableStateOf(0f) }
     var canvasSize by remember { mutableStateOf(IntSize(0, 0)) }
@@ -95,22 +101,7 @@ fun LineGraph(
             .background(Color.White)
             .padding(horizontal = selectionKnobSize / 2)
     ) {
-        val selectionLineWidth = 2.dp
-        Column(
-            Modifier
-                .width(selectionLineWidth)
-                .offset {
-                    IntOffset(
-                        selectionOffset.roundToInt() - (selectionLineWidth.toPx() / 2).toInt(),
-                        0
-                    )
-                }, horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Hejsan", softWrap = false, overflow = TextOverflow.Visible)
-
-
-
-            SelectionLine(Modifier.width(selectionLineWidth), selectionColor)
-        }
+        SelectionLine(selectionOffset, selectedPoint, selectionColor)
 
         Column {
             Canvas(
@@ -131,14 +122,15 @@ fun LineGraph(
 //                drawCircle(Color.Red, 10f, Offset(size.width, 0f))
 //                drawCircle(Color.Red, 10f, Offset(size.width, size.height))
 
-                    points.zipWithNext().forEach { (start, end) ->
-                        drawLine(
-                            lineBrush,
-                            start.toOffset(int),
-                            end.toOffset(int),
-                            strokeWidth = 5f
-                        )
-                    }
+                    points.zipWithNext()
+                        .forEach { (start, end) ->
+                            drawLine(
+                                lineBrush,
+                                start.toOffset(int),
+                                end.toOffset(int),
+                                strokeWidth = 5f
+                            )
+                        }
 
                     points.forEach {
                         drawCircle(
@@ -190,22 +182,52 @@ fun LineGraph(
 }
 
 @Composable
-private fun SelectionLine(modifier: Modifier = Modifier, color: Color) {
-    Box(
-        modifier
-            .fillMaxHeight()
-            .background(
-                Brush.verticalGradient(
-                    0f to Color.White,
-                    0.5f to Color.White,
-                    0.5f to color,
-                    1.0f to color,
-                    startY = 0f,
-                    endY = 10f,
-                    tileMode = TileMode.Repeated,
-                )
+private fun SelectionLine(
+    selectionOffset: Float,
+    selectedPoint: IPoint?,
+    selectionColor: Color,
+) {
+    val selectionLineWidth = 2.dp
+    ConstraintLayout(modifier = Modifier
+        .fillMaxHeight()
+        .offset {
+            IntOffset(
+                selectionOffset.roundToInt() - (selectionLineWidth.toPx() / 2).toInt(),
+                0
             )
-    )
+        }) {
+        val (text, line) = createRefs()
+
+        Text("${selectedPoint?.y}m/s",
+             softWrap = false,
+             overflow = TextOverflow.Visible,
+             modifier = Modifier.constrainAs(text) {
+                 top.linkTo(parent.top)
+                 centerHorizontallyTo(line)
+             })
+
+        Box(
+            Modifier
+                .width(selectionLineWidth)
+                .constrainAs(line) {
+                    top.linkTo(text.bottom)
+                    bottom.linkTo(parent.bottom)
+                    height = Dimension.fillToConstraints
+                }
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.White,
+                        0.5f to Color.White,
+                        0.5f to selectionColor,
+                        1.0f to selectionColor,
+                        startY = 0f,
+                        endY = 10f,
+                        tileMode = TileMode.Repeated,
+                    )
+                )
+        )
+
+    }
 }
 
 
@@ -223,13 +245,13 @@ val points = listOf(
 @Composable
 @Preview(showBackground = true)
 fun LineGraphPreview() {
-    Column() {
+    Column(Modifier.padding(16.dp)) {
         LineGraph(
             points,
             Modifier
                 //            .width(500.dp)
                 .height(300.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+//        Spacer(modifier = Modifier.height(16.dp))
     }
 }
