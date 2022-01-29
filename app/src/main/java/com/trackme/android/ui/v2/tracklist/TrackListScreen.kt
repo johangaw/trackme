@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +22,7 @@ fun TrackListScreen() {
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            ListFAB()
+            ListFAB(onClick = { /* TODO */ })
         }
     ) {
         val tracks = mapOf(
@@ -130,17 +128,6 @@ fun TrackListItemCard(item: TrackListItem) {
     }
 }
 
-
-@Composable
-private fun ListFAB() {
-    FloatingActionButton(
-        onClick = {},
-        backgroundColor = MaterialTheme.colors.secondary.copy(alpha = 1f),
-    ) {
-        // TODO: Make icon larger and transparent
-        Icon(Icons.Filled.Add, contentDescription = "Add track")
-    }
-}
 
 @Composable
 @Preview(device = Devices.PIXEL_4, showSystemUi = true)
