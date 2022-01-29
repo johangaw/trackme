@@ -41,10 +41,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            App(
-                this::requestLocationTracking,
-                this::stopLocationTracking,
-            )
+            TrackMeTheme {
+                App(
+                    this::requestLocationTracking,
+                    this::stopLocationTracking,
+                )
+            }
         }
     }
 
