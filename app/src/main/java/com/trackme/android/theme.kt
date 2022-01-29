@@ -13,8 +13,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+val primaryColor = Color(0x0F, 0x44, 0x25)
+
 val colors = lightColors(
-    primary = Color(0x0F, 0x44, 0x25),
+    primary = primaryColor,
     primaryVariant = Color(0x52, 0x96, 0x51),
     secondary = Color(0xE3, 0x54, 0x35),
     secondaryVariant = Color(0xFF, 0xCC, 0x47),
@@ -30,7 +32,7 @@ val colors = lightColors(
 val Colors.primaryVariant2: Color get() = Color(0x76, 0xC0, 0x74, 0xE5)
 
 val fonts = FontFamily(listOf(
-    Font(R.font.roboto_black),
+    Font(R.font.roboto_medium),
     Font(R.font.roboto_bold, weight = FontWeight.Bold),
     Font(R.font.roboto_light, weight = FontWeight.Light),
     Font(R.font.roboto_thin, weight = FontWeight.Thin),
@@ -41,12 +43,19 @@ val typography = Typography(
     defaultFontFamily = fonts,
     h1 = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Bold, fontSize = 36.sp),
     h2 = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Bold, fontSize = 24.sp),
-    subtitle1 = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Bold, fontSize = 18.sp),
+    h3 = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Normal, fontSize = 16.sp),
+    subtitle1 = TextStyle(fontFamily = fonts,
+                          fontWeight = FontWeight.Bold,
+                          fontSize = 18.sp,
+                          color = primaryColor),
     body1 = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Bold, fontSize = 12.sp),
     button = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Bold, fontSize = 36.sp),
 )
 
-val Typography.buttonLarge get() = TextStyle(fontFamily = fonts, fontWeight = FontWeight.Normal, fontSize = 56.sp)
+val Typography.buttonLarge
+    get() = TextStyle(fontFamily = fonts,
+                      fontWeight = FontWeight.Normal,
+                      fontSize = 56.sp)
 
 @Composable
 fun TrackMeTheme(
