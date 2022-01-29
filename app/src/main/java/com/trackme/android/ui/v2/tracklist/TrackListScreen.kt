@@ -104,26 +104,10 @@ fun TrackList(
         Spacer(Modifier.height(16.dp))
 
         tracks.forEachIndexed { index, item ->
-            TrackListItemCard(item)
+            TrackListItemCard(item, {}, {})
 
             val spacing = if (index == tracks.lastIndex) 24 else 16
             Spacer(Modifier.height(spacing.dp))
-        }
-    }
-}
-
-@Composable
-fun TrackListItemCard(item: TrackListItem) {
-    Card(
-        Modifier.fillMaxWidth(),
-        elevation = 6.dp,
-    ) {
-        Row(Modifier
-                .fillMaxWidth()
-                .padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(item.duration, style = MaterialTheme.typography.subtitle1)
-            Text(item.length, style = MaterialTheme.typography.subtitle1)
-            Text(item.averageSpeed, style = MaterialTheme.typography.subtitle1)
         }
     }
 }
