@@ -1,5 +1,6 @@
 package com.trackme.android.ui.tracks
 
+import SwipeToRevealStage
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -76,7 +77,7 @@ fun TrackRow(
     track: TrackData,
     onSelect: (TrackData) -> Unit,
     onDelete: (TrackData) -> Unit,
-    swipeableState: SwipeableState<String> = rememberSwipeableState("hidden"),
+    swipeableState: SwipeableState<SwipeToRevealStage> = rememberSwipeableState(SwipeToRevealStage.Hidden),
 ) {
     var deleted by remember { mutableStateOf(false) }
     Box(

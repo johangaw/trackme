@@ -3,12 +3,20 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+enum class SwipeToRevealStage {
+    Hidden,
+    Visible
+}
+
 @ExperimentalMaterialApi
 @Composable
 fun Modifier.swipeToReveal(
-    swipeableState: SwipeableState<String> = rememberSwipeableState("hidden"),
+    swipeableState: SwipeableState<SwipeToRevealStage> = rememberSwipeableState(SwipeToRevealStage.Hidden),
+    hiddenAnchorOffset: Float = 0f,
+    visibleAnchorOffset: Float = 300f,
 ): Modifier {
-    val anchors = mapOf(0f to "hidden", 300f to "visible")
+    val anchors = mapOf(hiddenAnchorOffset to SwipeToRevealStage.Hidden,
+                        visibleAnchorOffset to SwipeToRevealStage.Visible)
     return this.swipeable(
         state = swipeableState,
         anchors = anchors,
