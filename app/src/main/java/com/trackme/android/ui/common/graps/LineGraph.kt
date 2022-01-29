@@ -9,6 +9,8 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -27,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import com.trackme.android.TrackMeTheme
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -65,7 +67,6 @@ fun LineGraph(
     modifier: Modifier = Modifier,
     options: Options = Options(),
 ) {
-    val selectionColor = Color.Green
     val lineBrush = SolidColor(Color.Black)
     val selectionKnobSize = 24.dp
     val xRange =
@@ -101,7 +102,7 @@ fun LineGraph(
             .background(Color.White)
             .padding(horizontal = selectionKnobSize / 2)
     ) {
-        SelectionLine(selectionOffset, selectedPoint, selectionColor)
+        SelectionLine(selectionOffset, selectedPoint, MaterialTheme.colors.secondaryVariant)
 
         Column {
             Canvas(
@@ -145,14 +146,20 @@ fun LineGraph(
             Spacer(modifier = Modifier.height(4.dp))
 
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                val lineColor = Color.Black.copy(alpha = 0.6f)
                 Box(
                     Modifier
                         .height(4.dp)
                         .fillMaxWidth()
-                        .border(1.dp, Color.Black)
+                        .background(lineColor)
+                        .border(1.dp, lineColor)
+
                 )
-                Box(
-                    Modifier
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colors.secondary,
+                    elevation = 8.dp,
+                    modifier = Modifier
                         .size(selectionKnobSize)
                         .offset {
                             IntOffset(
@@ -160,8 +167,6 @@ fun LineGraph(
                                 0
                             )
                         }
-                        .clip(CircleShape)
-                        .background(selectionColor)
                         .draggable(
                             orientation = Orientation.Horizontal,
                             state = rememberDraggableState { delta ->
@@ -172,7 +177,7 @@ fun LineGraph(
                                         canvasSize.width.toFloat(),
                                     )
                             })
-                )
+                ) {}
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -245,13 +250,15 @@ val points = listOf(
 @Composable
 @Preview(showBackground = true)
 fun LineGraphPreview() {
-    Column(Modifier.padding(16.dp)) {
-        LineGraph(
-            points,
-            Modifier
-                //            .width(500.dp)
-                .height(300.dp)
-        )
+    TrackMeTheme {
+        Column(Modifier.padding(16.dp)) {
+            LineGraph(
+                points,
+                Modifier
+                    //            .width(500.dp)
+                    .height(300.dp)
+            )
 //        Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
