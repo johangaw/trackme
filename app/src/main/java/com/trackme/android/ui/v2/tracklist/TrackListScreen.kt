@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trackme.android.R
 import com.trackme.android.TrackMeTheme
+import java.util.*
 
 @Composable
 fun TrackListScreen() {
@@ -91,6 +92,7 @@ data class TrackListItem(
     val duration: String,
     val length: String,
     val averageSpeed: String,
+    val id: String = UUID.randomUUID().toString(),
 )
 
 
